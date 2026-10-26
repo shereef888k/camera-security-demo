@@ -44,10 +44,10 @@ const CONFIG = {
 
   // Visitor demo page path helper (ensures subpath compatibility on GitHub Pages)
   getDemoPageUrl(sessionId) {
-    // Determine relative path to demo.html regardless of repository subpaths
+    // Determine relative path to landing page regardless of repository subpaths
     const currentPath = window.location.pathname;
     const basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-    const demoUrl = new URL(`${basePath}demo.html`, window.location.origin);
+    const demoUrl = new URL(`${basePath}index.html`, window.location.origin);
     demoUrl.searchParams.set('session', sessionId);
 
     // If a custom API URL is in use, also pass it along so the visitor client targets the matching backend

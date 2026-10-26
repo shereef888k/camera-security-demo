@@ -59,6 +59,18 @@ describe('Sessions API Endpoints', () => {
     assert.strictEqual(diffMinutes, 45);
   });
 
+  test('POST /api/sessions/demo — Successfully creates public demo session without admin key (201)', async () => {
+    const res = await request(app)
+      .post('/api/sessions/demo')
+      .send({ label: 'Public Visitor' });
+
+    assert.strictEqual(res.status, 201);
+    assert.strictEqual(res.body.success, true);
+    assert.ok(res.body.session.id);
+    assert.strictEqual(res.body.session.status, 'created');
+    assert.match(res.body.session.label, /Public Visitor/i);
+  });
+
   test('GET /api/sessions — Lists sessions for authenticated administrator (200)', async () => {
     const res = await request(app)
       .get('/api/sessions')

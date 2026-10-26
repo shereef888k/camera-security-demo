@@ -53,6 +53,41 @@ router.post('/', requireAdminAuth, (req, res, next) => {
 });
 
 /**
+ * POST /api/sessions/demo
+ * Create an ephemeral public demonstration session (no admin key required).
+ * Allows visitors on the video landing page to test the consent demonstration.
+ */
+router.post('/demo', (req, res, next) => {
+  try {
+    const { label } = req.body || {};
+    const sanitizedLabel = label && typeof label === 'string'
+      ? `Web Demo: ${label.trim().substring(0, 40)}`
+      : 'Public Web Visitor Demo';
+
+    // 15-minute expiration for ephemeral public demonstration
+    const parsedDuration = 15;
+    const sessionId = crypto.randomBytes(16).toString('hex');
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + parsedDuration * 60 * 1000).toISOString();
+
+    const session = db.createSession({
+      id: sessionId,
+      label: sanitizedLabel,
+      expiresAt,
+      createdAt: now.toISOString()
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Public demonstration session created.',
+      session
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * GET /api/sessions
  * List all sessions (Admin Authorized).
  */
