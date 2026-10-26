@@ -20,10 +20,16 @@ app.use(helmet({
 }));
 
 // 2. Strict CORS Configuration
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+const defaultOrigins = [
+  'https://shereef888k.github.io'
+];
+
+const envOrigins = (process.env.FRONTEND_ORIGIN || '')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
 
 const corsOptions = {
   origin: (origin, callback) => {
