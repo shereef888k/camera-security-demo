@@ -163,8 +163,8 @@ describe('Photo Submission & Telegram Integration API', () => {
   });
 
   test('POST /api/sessions/:id/photo — Rejects submission to an expired session (410)', async () => {
-    // Manually create expired session in DB
-    const expiredId = 'expired0123456789abcdef01234567';
+    // Manually create expired session in DB with valid hex ID
+    const expiredId = 'e00123456789abcdef0123456789abcd';
     db.createSession({
       id: expiredId,
       expiresAt: new Date(Date.now() - 60000).toISOString() // 1 minute in the past
@@ -210,5 +210,35 @@ describe('Photo Submission & Telegram Integration API', () => {
     assert.strictEqual(photoRes.status, 400);
     assert.strictEqual(photoRes.body.success, false);
     assert.match(photoRes.body.error, /Missing photo file/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects invalid session ID format (400)', async () => {
+    const photoRes = await request(app)
+      .post('/api/sessions/invalid-id-!/photo')
+      .attach('photo', TINY_JPEG_BUFFER, 'sample.jpg');
+
+    assert.strictEqual(photoRes.status, 400);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /Invalid session ID format/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects oversized photo uploads exceeding 10MB limit (413)', async () => {
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    // Create 10.5 MB buffer
+    const oversizedBuffer = Buffer.alloc(10.5 * 1024 * 1024);
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', oversizedBuffer, 'oversized.jpg');
+
+    assert.strictEqual(photoRes.status, 413);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /exceeds maximum allowable file size/i);
   });
 });

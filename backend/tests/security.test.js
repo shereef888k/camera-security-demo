@@ -59,4 +59,42 @@ describe('Security & Infrastructure Tests', () => {
     assert.strictEqual(res.body.success, false);
     assert.match(res.body.error, /Route not found/i);
   });
+
+  test('Server Auth Configuration — Fails with 500 when ADMIN_API_KEY is not set', async () => {
+    const originalKey = process.env.ADMIN_API_KEY;
+    delete process.env.ADMIN_API_KEY;
+
+    const res = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', 'any_key')
+      .send({ durationMinutes: 30 });
+
+    assert.strictEqual(res.status, 500);
+    assert.strictEqual(res.body.success, false);
+    assert.match(res.body.error, /not configured/i);
+
+    process.env.ADMIN_API_KEY = originalKey;
+  });
+
+  test('Production Error Sanitization — Never leaks internal details on 500 in production', async () => {
+    const prevEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    // Call sessions endpoint with missing key to trigger 500
+    const originalKey = process.env.ADMIN_API_KEY;
+    delete process.env.ADMIN_API_KEY;
+
+    const res = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', 'test')
+      .send({});
+
+    assert.strictEqual(res.status, 500);
+    assert.strictEqual(res.body.success, false);
+    assert.strictEqual(res.body.error, 'An internal server error occurred.');
+    assert.strictEqual(res.body.stack, undefined);
+
+    process.env.ADMIN_API_KEY = originalKey;
+    process.env.NODE_ENV = prevEnv;
+  });
 });

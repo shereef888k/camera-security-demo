@@ -127,7 +127,23 @@ Under the **Environment** tab on Render, add:
 
 ---
 
-## 5. Post-Deployment Verification
+## 5. Free-Tier Limitations & Storage Caveats
+
+### Ephemeral Filesystem vs. Persistent Disks
+- **Free Tier Sleep & Cold Starts**: On free tiers (e.g. Render Free Web Services), instances spin down after 15 minutes of inactivity. The first incoming request will trigger a cold start taking ~30–50 seconds. The Admin Dashboard handles this gracefully with a "Checking API..." indicator.
+- **Data Persistence**: If deploying to a free container without an attached persistent disk, the local SQLite database resets upon container sleep or redeploy. For security demonstrations where sessions are short-lived (15–30 minutes), this is usually acceptable. For long-running or audit persistence, an attached disk or managed database is required.
+
+### Database Initialization & Migration
+- SQLite requires zero manual SQL setup or migration commands. The backend automatically initializes all required tables and indexes (`CREATE TABLE IF NOT EXISTS sessions...`) upon initial startup in `services/db.js`.
+
+### Managed Database Alternatives (for Serverless / Distributed Hosts)
+If deploying to environments where local disk storage is prohibited (e.g., AWS Lambda, Vercel Serverless, Cloudflare Workers):
+- **Turso (Hosted libSQL / SQLite)**: Fully compatible with SQLite queries over HTTP/WebSocket without requiring a local file.
+- **Supabase / Managed PostgreSQL**: Can replace the SQLite layer by swapping `services/db.js` queries to PostgreSQL `pg` pool.
+
+---
+
+## 6. Post-Deployment Verification
 
 1. Test the health endpoint:
    ```bash

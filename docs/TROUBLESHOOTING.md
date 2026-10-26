@@ -97,3 +97,24 @@ This guide provides diagnostic solutions for common mobile camera permission blo
   2. Is `FRONTEND_ORIGIN` in `backend/.env` configured with the exact origin of your frontend (e.g. `https://username.github.io`)?
   3. In development, you can set `FRONTEND_ORIGIN=*` in `backend/.env` to allow all origins.
   4. Remember to restart the backend service after modifying `.env`.
+
+---
+
+## 4. Cross-Platform Browser Verification Matrix & Limitations
+
+| Platform | Browser | Camera Support | FacingMode Switch | Specific Limitations & Fallback Behavior |
+| :--- | :--- | :---: | :---: | :--- |
+| **Android** | Google Chrome (v80+) | ✅ Full | ✅ Supported | Requires HTTPS. Native permission prompt shown once per domain. |
+| **Android** | Mozilla Firefox | ✅ Full | ✅ Supported | Requires HTTPS. User prompted per session or always. |
+| **Android** | Microsoft Edge | ✅ Full | ✅ Supported | Chromium-based; mirrors Chrome permission model. |
+| **iOS / iPadOS** | Safari (iOS 14.3+) | ✅ Full | ✅ Supported | Requires HTTPS. Inline video requires `playsinline` (implemented). Device orientation changes adapt viewport dynamically. |
+| **iOS / iPadOS** | Chrome / Firefox for iOS | ✅ Full | ✅ Supported | Uses Apple WebKit engine. System-level camera permissions for the parent app must be active in iOS Settings. |
+| **Windows Desktop** | Chrome / Edge / Brave | ✅ Full | N/A (Single Cam) | Webcams with multiple lenses supported. OS privacy toggles under Windows Settings must permit desktop apps. |
+| **Windows Desktop** | Mozilla Firefox | ✅ Full | N/A (Single Cam) | Full camera selection dropdown in native browser dialog. |
+| **macOS Desktop** | Safari (macOS 12+) | ✅ Full | N/A (FaceTime HD)| macOS System Settings &rarr; Privacy & Security &rarr; Camera permission required. |
+| **macOS Desktop** | Chrome / Edge / Firefox | ✅ Full | N/A (FaceTime HD)| External USB/Thunderbolt capture cards and webcams fully supported. |
+| **Android Tablets** | All Chromium browsers | ✅ Full | ✅ Supported | Responsive layout adapts between portrait (3:4) and landscape (4:3). |
+| **iPads** | Safari / Chrome | ✅ Full | ✅ Supported | Split View and Stage Manager supported; track cleanup triggers on app defocus. |
+| **In-App Browsers** | Instagram / TikTok / Facebook | ⚠️ Limited | ❌ Fallback | In-app WebViews may strip `getUserMedia` capabilities. The app detects this and displays a message: *"Unsupported Browser: Please open this link in external Safari or Chrome."* |
+| **Insecure HTTP** | Any Browser | ❌ Blocked by Spec | ❌ Blocked | W3C specification strictly blocks `getUserMedia` on plain HTTP (except localhost). The app intercepts this with *"HTTPS Required"* alert before requesting permission. |
+

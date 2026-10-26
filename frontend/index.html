@@ -95,10 +95,13 @@
             <input type="url" id="backend-url-override" class="form-input" placeholder="http://localhost:4000">
           </div>
 
-          <div style="display: flex; gap: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
             <button type="submit" class="btn btn-secondary" style="flex: 1;">Save Settings</button>
             <button type="button" id="btn-test-connection" class="btn btn-secondary btn-sm" title="Ping health endpoint">Test Ping</button>
           </div>
+          <p style="font-size: 0.75rem; color: var(--text-dim); line-height: 1.4;">
+            Security Notice: Authorization is strictly enforced server-side via the <code>X-Admin-Key</code> header on each API call. Browser local storage is used solely for local administrative convenience.
+          </p>
         </form>
       </section>
     </div>

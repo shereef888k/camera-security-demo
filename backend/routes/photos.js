@@ -27,6 +27,11 @@ const upload = multer({
   }
 });
 
+// Helper to validate session ID format (prevents injection/traversal attacks)
+function isValidSessionId(id) {
+  return typeof id === 'string' && /^[a-f0-9]{16,64}$/i.test(id);
+}
+
 /**
  * POST /api/sessions/:id/photo
  * Receive an explicitly submitted photo from a consented visitor and deliver to Telegram.
@@ -34,6 +39,14 @@ const upload = multer({
 router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    // 0. Validate session ID format
+    if (!isValidSessionId(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid session ID format.'
+      });
+    }
 
     // 1. Validate file presence
     if (!req.file || !req.file.buffer) {

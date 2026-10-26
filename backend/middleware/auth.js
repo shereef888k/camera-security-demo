@@ -9,10 +9,9 @@ function requireAdminAuth(req, res, next) {
   const configuredKey = process.env.ADMIN_API_KEY;
 
   if (!configuredKey || configuredKey.trim() === '') {
-    return res.status(500).json({
-      success: false,
-      error: 'Administrator authentication key is not configured on the server.'
-    });
+    const configErr = new Error('Administrator authentication key is not configured on the server.');
+    configErr.statusCode = 500;
+    return next(configErr);
   }
 
   // Extract key from header
@@ -32,11 +31,11 @@ function requireAdminAuth(req, res, next) {
     });
   }
 
-  // Timing safe comparison
-  const configuredBuffer = Buffer.from(configuredKey.trim());
-  const providedBuffer = Buffer.from(providedKey.trim());
+  // Timing-safe constant-length comparison via SHA-256 digest
+  const configuredHash = crypto.createHash('sha256').update(configuredKey.trim()).digest();
+  const providedHash = crypto.createHash('sha256').update(providedKey.trim()).digest();
 
-  if (configuredBuffer.length !== providedBuffer.length || !crypto.timingSafeEqual(configuredBuffer, providedBuffer)) {
+  if (!crypto.timingSafeEqual(configuredHash, providedHash)) {
     return res.status(401).json({
       success: false,
       error: 'Unauthorized: Invalid Administrator API Key.'

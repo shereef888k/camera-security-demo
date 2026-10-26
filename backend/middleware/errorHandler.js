@@ -35,15 +35,16 @@ function errorHandler(err, req, res, next) {
   const statusCode = err.statusCode || 500;
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Log error internally (without credentials)
-  if (statusCode >= 500) {
-    console.error(`[Error] ${req.method} ${req.path} - Status ${statusCode}:`, err.message);
-  }
+  // Sanitize internal server errors in production to prevent stack or path leaks
+  const isInternalError = statusCode >= 500;
+  const clientMessage = (isProduction && isInternalError)
+    ? 'An internal server error occurred.'
+    : (err.message || 'An internal server error occurred.');
 
   // Send clean JSON error response
   return res.status(statusCode).json({
     success: false,
-    error: err.message || 'An internal server error occurred.',
+    error: clientMessage,
     ...(isProduction ? {} : { code: err.code })
   });
 }

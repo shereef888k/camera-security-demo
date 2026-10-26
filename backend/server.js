@@ -19,37 +19,46 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// 2. Dynamic CORS Configuration
-const allowedOrigins = (process.env.FRONTEND_ORIGIN || '*')
+// 2. Strict CORS Configuration
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. curl, tests, mobile native)
+    // Allow non-browser requests (e.g. server-side curl, unit tests, mobile native agents)
     if (!origin) return callback(null, true);
 
-    // If wildcard configured
+    // In production mode, wildcard '*' is strictly prohibited
+    if (isProduction) {
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      const corsErr = new Error(`CORS blocked: Origin ${origin} is not in FRONTEND_ORIGIN production whitelist.`);
+      corsErr.statusCode = 403;
+      return callback(corsErr);
+    }
+
+    // Development mode logic:
+    // If wildcard explicitly configured in development
     if (allowedOrigins.includes('*')) {
       return callback(null, true);
     }
 
-    // Check explicit whitelist
+    // Whitelist check
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    // In local development, permit common local dev ports automatically
-    if (!isProduction) {
-      if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-        return callback(null, true);
-      }
+    // Allow local development server ports (localhost, 127.0.0.1)
+    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
     }
 
-    const corsErr = new Error(`CORS blocked: Origin ${origin} is not allowed by FRONTEND_ORIGIN policy.`);
-    corsErr.statusCode = 403;
-    return callback(corsErr);
+    const devCorsErr = new Error(`CORS blocked: Origin ${origin} is not allowed by development CORS policy.`);
+    devCorsErr.statusCode = 403;
+    return callback(devCorsErr);
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key', 'Accept'],
