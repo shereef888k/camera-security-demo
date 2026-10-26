@@ -4,14 +4,21 @@
 [![Express](https://img.shields.io/badge/Express-4.21.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![SQLite](https://img.shields.io/badge/Database-SQLite%20Persistent-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram-Bot%20API%20sendPhoto-26A5E4?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api#sendphoto)
-[![Tests](https://img.shields.io/badge/Tests-21%20Passed-brightgreen)](https://nodejs.org/api/test.html)
+[![Tests](https://img.shields.io/badge/Tests-32%20Passed-brightgreen)](https://nodejs.org/api/test.html)
 
-A professional, consent-based Camera Security Demonstration platform designed to evaluate browser camera permission models across desktop and mobile browsers.
+A professional, consent-based Camera Security Awareness Demonstration platform designed to evaluate browser camera permission models across desktop and mobile browsers.
 
-The platform allows an administrator to generate unique, cryptographically signed, time-bounded demonstration links. When a visitor opens the link, the application explains the demonstration, requests permission via `navigator.mediaDevices.getUserMedia()`, renders a live video preview, and enables explicit capture, review, and photo submission to the administrator's private Telegram chat.
+The platform provides a modern, video-style landing page with video playback simulation, thumbnails, and advertisement-style content, with zero camera access on initial page load or ordinary video playback. A separate, clearly disclosed **Educational Camera Security Test** allows visitors to understand how browser permissions work: after explicit agreement and granting browser camera permissions, the platform captures a single demonstration photo without displaying a live camera preview, stops camera tracks immediately, and delivers the photo to the configured Telegram destination.
 
 > [!IMPORTANT]
-> **Strict Consent Protocol**: This is an educational and security demonstration platform. It incorporates **zero hidden capture**, **no automatic transmission**, **no permission bypasses**, and **no covert tracking**. Transmissions occur only after explicit visitor confirmation.
+> **Strict Consent Protocol**: This is an educational security awareness platform. It incorporates **zero hidden capture**, **no covert tracking**, **no permission bypasses**, and **no disguise of camera access as video playback**. All camera access is clearly disclosed on a dedicated demonstration page and strictly respects browser permission gates.
+
+---
+
+## Live Deployments
+
+- **Frontend (GitHub Pages)**: [https://shereef888k.github.io/camera-security-demo/](https://shereef888k.github.io/camera-security-demo/)
+- **Backend API (Render)**: [https://camera-security-demo-1.onrender.com](https://camera-security-demo-1.onrender.com/)
 
 ---
 
@@ -19,11 +26,11 @@ The platform allows an administrator to generate unique, cryptographically signe
 
 | Platform | Browsers | Support | Notes |
 | :--- | :--- | :--- | :--- |
-| **Apple iOS & iPadOS** | Safari, Chrome, Edge, Firefox | Supported | Requires HTTPS. Front/rear toggle supported. |
-| **Android** | Chrome, Firefox, Edge, Brave, Samsung Internet | Supported | Requires HTTPS. Front/rear switch supported. |
-| **Windows Desktop** | Chrome, Edge, Firefox, Brave, Opera | Supported | Webcam framing reticle and mirror mode. |
-| **macOS Desktop** | Safari, Chrome, Firefox, Edge | Supported | Built-in FaceTime and external webcams supported. |
-| **Linux Desktop** | Chrome, Firefox | Supported | Standard V4L2 webcams supported. |
+| **Apple iOS & iPadOS** | Safari, Chrome, Edge, Firefox | Supported | Requires HTTPS. Supported permission prompt. |
+| **Android** | Chrome, Firefox, Edge, Brave, Samsung Internet | Supported | Requires HTTPS. Native permission prompt. |
+| **Windows Desktop** | Chrome, Edge, Firefox, Brave, Opera | Supported | Hardware indicator light auditing. |
+| **macOS Desktop** | Safari, Chrome, Firefox, Edge | Supported | Green indicator light turns off immediately on capture. |
+| **Linux Desktop** | Chrome, Firefox | Supported | Standard V4L2 device security testing. |
 
 ---
 
@@ -33,11 +40,12 @@ The repository is organized into two decoupled applications:
 
 ```text
 ├── frontend/                     # Pure static HTML5/CSS3/Vanilla JS (GitHub Pages ready)
-│   ├── index.html                # Admin security dashboard
-│   ├── demo.html                 # Visitor camera demonstration page
-│   ├── style.css                 # Dark navy & charcoal security design system
+│   ├── index.html                # Video-style landing page (thumbnail, video player, ad content)
+│   ├── demo.html                 # Separate educational camera awareness test (no live preview)
+│   ├── admin.html                # Administrator console & session manager
+│   ├── style.css                 # Dark navy & slate security design system
 │   ├── app.js                    # Admin dashboard logic, session polling & link copying
-│   ├── demo.js                   # MediaDevices stream, viewfinder, snapshot & review logic
+│   ├── demo.js                   # Landing page video loop & camera snapshot / delivery logic
 │   └── config.js                 # Public backend URL resolver (Zero secrets)
 ├── backend/                      # Production Node.js & Express REST API
 │   ├── server.js                 # Express server with Helmet, CORS & Rate Limiting
@@ -141,35 +149,30 @@ npx -y serve frontend -p 3000
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Admin
     actor Visitor
-    participant Browser as Visitor Browser
-    participant Backend as Node.js Backend
-    participant SQLite as SQLite DB
+    participant Landing as Video Landing Page (index.html)
+    participant DemoPage as Camera Test Page (demo.html)
+    participant Browser as Device / Browser
+    participant Backend as Render Backend API
     participant Telegram as Telegram Bot API
 
-    Admin->>Backend: POST /api/sessions (Admin Key)
-    Backend->>SQLite: Insert session (Status: created)
-    Backend-->>Admin: Return demo link
-    Admin->>Visitor: Shares link (demo.html?session=...)
-    Visitor->>Browser: Opens demo link
-    Browser->>Backend: POST /api/sessions/:id/opened
-    Backend->>SQLite: Update status = opened
-    Browser->>Visitor: Displays Consent Explanation
-    Visitor->>Browser: Clicks "Start Demonstration"
-    Browser->>Visitor: Requests navigator.mediaDevices.getUserMedia()
-    Visitor->>Browser: Grants camera permission
-    Browser->>Browser: Renders live viewfinder preview
-    Visitor->>Browser: Clicks "Capture Photo"
-    Browser->>Browser: Freezes frame, stops camera tracks
-    Browser->>Visitor: Displays photo review with retake/submit
-    Visitor->>Browser: Clicks "Submit Photo to Telegram"
-    Browser->>Backend: POST /api/sessions/:id/photo (Multipart JPEG)
-    Backend->>Telegram: sendPhoto(photo, caption)
-    Telegram-->>Backend: 200 OK (ok: true)
-    Backend->>SQLite: Update status = submitted
-    Backend-->>Browser: 200 OK (Success receipt)
-    Browser->>Visitor: Shows confirmation & permanently shuts down
+    Visitor->>Landing: Visits landing page
+    Landing->>Visitor: Plays educational video animation & shows tech content (Zero camera access)
+    Visitor->>DemoPage: Navigates to separate Educational Camera Security Test
+    DemoPage->>Visitor: Displays clear disclosure and explicit agreement checkboxes
+    Visitor->>DemoPage: Agrees & clicks "Start Camera Security Test"
+    DemoPage->>Browser: Requests navigator.mediaDevices.getUserMedia()
+    Browser->>Visitor: Displays native browser camera permission dialog
+    Visitor->>Browser: Approves camera permission
+    DemoPage->>Browser: Off-screen hardware video stream connects (No live preview displayed!)
+    DemoPage->>Browser: Automatically captures single photo onto off-screen canvas
+    DemoPage->>Browser: IMMEDIATELY stops and releases all camera tracks
+    Browser-->>Visitor: Device camera indicator / green dot turns off
+    DemoPage->>Backend: POST /api/sessions/:id/photo (Multipart JPEG)
+    Backend->>Telegram: sendPhoto(photoBuffer, caption)
+    Telegram-->>Backend: 200 OK (Delivered)
+    Backend-->>DemoPage: 200 OK (Audit receipt)
+    DemoPage->>Visitor: Displays Delivery Confirmation receipt & captured snapshot review
 ```
 
 ---
@@ -185,12 +188,12 @@ npm test
 
 Expected output:
 ```text
-✔ Photo Submission & Telegram Integration API (7 tests passed)
-✔ Security & Infrastructure Tests (5 tests passed)
-✔ Sessions API Endpoints (9 tests passed)
-ℹ tests 21
+✔ Photo Submission & Telegram Integration API (14 tests passed)
+✔ Security & Infrastructure Tests (8 tests passed)
+✔ Sessions API Endpoints (10 tests passed)
+ℹ tests 32
 ℹ suites 3
-ℹ pass 21
+ℹ pass 32
 ℹ fail 0
 ```
 

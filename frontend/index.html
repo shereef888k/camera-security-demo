@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Camera Security Demo — Educational Video Platform for Browser Camera Permissions, Informed Consent, and Ethical Security Testing.">
-  <title>Camera Security Demo — Video & Educational Security Platform</title>
+  <meta name="description" content="StreamSafe Media — Exploring Modern Hardware Security, Browser Isolation, and Device Privacy.">
+  <title>StreamSafe — Web Camera Security & Hardware Privacy Guide</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 </head>
@@ -12,27 +12,24 @@
   <!-- Header Navigation -->
   <header class="app-header">
     <div class="header-content">
-      <a href="./index.html" class="brand" aria-label="Camera Security Demo Home">
+      <a href="./index.html" class="brand" aria-label="StreamSafe Video Hub">
         <div class="brand-icon">🛡️</div>
         <div>
-          <div class="brand-title">Camera Security Demo</div>
-          <div class="brand-subtitle">Educational Security & Privacy Hub</div>
+          <div class="brand-title">StreamSafe Media</div>
+          <div class="brand-subtitle">Tech & Privacy Channel</div>
         </div>
       </a>
 
-      <!-- Video Platform Style Mockup Search -->
+      <!-- Search Bar -->
       <div class="header-search">
         <span class="header-search-icon">🔍</span>
-        <input type="text" class="header-search-input" placeholder="Search security topics, browser permissions, audits..." aria-label="Search">
+        <input type="text" class="header-search-input" placeholder="Search videos, tutorials, tech security..." aria-label="Search">
       </div>
 
-      <!-- Header Actions -->
+      <!-- Actions -->
       <div class="header-actions">
-        <a href="#privacy-guarantee" class="btn btn-secondary btn-sm" style="text-decoration: none;">
-          <span>🔒 Privacy Notice</span>
-        </a>
-        <a href="./admin.html" class="btn btn-secondary btn-sm" style="text-decoration: none;" title="Open Administrator Console">
-          <span>⚙️ Admin Console</span>
+        <a href="./admin.html" class="btn btn-secondary btn-sm" style="text-decoration: none;" title="Administrator Console">
+          <span>⚙️ Admin</span>
         </a>
         <div id="backend-status" class="status-indicator">
           <span class="indicator-dot checking" id="status-dot"></span>
@@ -46,44 +43,43 @@
   <main class="container">
     <div class="video-page-grid">
       
-      <!-- Left Column: Video Player, Metadata, Actions, & Educational Details -->
+      <!-- Main Column: Video Player, Metadata, Ad Banner, Description & Comments -->
       <div class="video-main-column">
         
-        <!-- 1. Video Player Container (Does NOT open camera or request permission) -->
-        <div class="video-player-wrapper" id="video-player-wrapper" role="region" aria-label="Educational Demonstration Video">
+        <!-- Video Player Frame -->
+        <div class="video-player-wrapper" id="video-player-wrapper" role="region" aria-label="Featured Video Player">
           
-          <!-- Default Video Poster / Thumbnail with Play Button -->
+          <!-- Video Thumbnail / Poster -->
           <div class="video-poster" id="video-poster">
             <div class="poster-top-bar">
-              <span class="poster-badge">🛡️ SECURITY AUDIT SERIES</span>
+              <span class="poster-badge">FEATURED TECH DOCUMENTARY</span>
               <span class="poster-badge" style="color: #4ade80;">4K ULTRA HD</span>
             </div>
 
-            <!-- Central Glowing Play Button -->
+            <!-- Central Play Button -->
             <div class="poster-center-play">
-              <div class="play-button-glow" id="btn-poster-play" role="button" aria-label="Play educational demonstration video">
+              <div class="play-button-glow" id="btn-poster-play" role="button" aria-label="Play video">
                 <span>▶</span>
               </div>
-              <span class="play-label">Watch Educational Video</span>
+              <span class="play-label">Play Video</span>
             </div>
 
-            <!-- Poster Bottom Meta -->
             <div class="poster-bottom-bar">
               <div class="poster-title-overlay">
-                <div class="poster-series-tag">EPISODE 04 &bull; BROWSER HARDWARE ISOLATION</div>
-                <div class="poster-main-title">Webcam Security & Browser Permission Architecture</div>
+                <div class="poster-series-tag">DIGITAL PRIVACY SERIES &bull; EPISODE 04</div>
+                <div class="poster-main-title">Webcam Security & Hardware Privacy in Modern Operating Systems</div>
               </div>
               <div class="poster-duration">04:18</div>
             </div>
           </div>
 
-          <!-- Interactive HTML5 Canvas Video Simulation (Plays upon user click) -->
+          <!-- Video Playback Stage (Interactive educational presentation) -->
           <div class="video-canvas-stage" id="video-canvas-stage" style="display: none;">
             <canvas id="interactive-video-canvas" class="interactive-demo-canvas"></canvas>
             
-            <!-- Custom Player Controls Bar -->
+            <!-- Controls Bar -->
             <div class="video-controls-bar" id="video-controls-bar">
-              <div class="video-scrubber-bar" id="video-scrubber" title="Seek video position">
+              <div class="video-scrubber-bar" id="video-scrubber" title="Seek position">
                 <div class="video-scrubber-progress" id="video-scrubber-progress"></div>
               </div>
               <div class="video-controls-row">
@@ -102,20 +98,20 @@
 
         </div>
 
-        <!-- 2. Video Title & Metric Row -->
+        <!-- Video Title & Metrics -->
         <div class="video-title-area">
           <h1 class="video-primary-title">
-            Webcam Security & Browser Permission Architecture — Demonstration Video
+            Webcam Security & Hardware Privacy in Modern Operating Systems (Complete Guide)
           </h1>
           
           <div class="video-metrics-bar">
             <span class="video-views-count">
-              14,820 views &bull; Educational Cybersecurity Demonstration &bull; Updated Today
+              18,420 views &bull; Premiered 2 days ago &bull; Technology & Privacy
             </span>
 
             <div class="video-actions-cluster">
               <button type="button" class="action-chip" id="btn-like-video">
-                <span>👍</span> <span id="like-count">1.2K</span>
+                <span>👍</span> <span id="like-count">1.8K</span>
               </button>
               <button type="button" class="action-chip" id="btn-share-page">
                 <span>🔗</span> <span>Share</span>
@@ -127,16 +123,16 @@
           </div>
         </div>
 
-        <!-- 3. Channel / Author Bar -->
+        <!-- Channel Row -->
         <div class="channel-row">
           <div class="channel-identity">
             <div class="channel-avatar">🛡️</div>
             <div>
               <div class="channel-name">
-                Camera Security Lab
-                <span class="verified-icon" title="Verified Educational Channel">✓</span>
+                PrivacyTech Media
+                <span class="verified-icon" title="Verified Creator">✓</span>
               </div>
-              <div class="channel-meta">28.4K security researchers &bull; Strict Consent Protocol</div>
+              <div class="channel-meta">24.8K subscribers &bull; Weekly Cyber Guides</div>
             </div>
           </div>
 
@@ -147,81 +143,111 @@
           </div>
         </div>
 
-        <!-- 4. Video Description Box -->
+        <!-- Native Advertisement Banner Card -->
+        <div class="ad-banner-card">
+          <div>
+            <span class="ad-badge">Sponsored &bull; Hardware Partner</span>
+            <div class="ad-headline">CyberShield™ Lens Guard — Physical Privacy for Laptops & Mobiles</div>
+            <div class="ad-copy">Ultra-thin magnetic shutter fits iPhones, MacBooks, and Android tablets. Guaranteed peace of mind.</div>
+          </div>
+          <a href="#sponsor" class="ad-cta-btn" id="ad-sponsor-link">Learn More &rarr;</a>
+        </div>
+
+        <!-- Description Card -->
         <div class="video-description-card">
           <div class="desc-preview" id="desc-preview">
-            <p><strong>About This Educational Demonstration:</strong></p>
+            <p><strong>Video Overview:</strong></p>
             <p style="margin-top: 0.4rem;">
-              Modern web browsers isolate hardware peripherals (cameras, microphones, sensors) behind the strict <code>navigator.mediaDevices.getUserMedia()</code> security boundary. A website can <em>never</em> silently capture or stream your camera feed without an explicit, user-initiated action.
+              How safe is your device camera? In this video, we investigate how iOS, Android, macOS, and Windows sandbox web applications to prevent background recording. We discuss hardware kill-switches, operating system status lights (green dots), and why browser permission prompts are essential.
             </p>
             <p style="margin-top: 0.5rem;">
-              This interactive platform demonstrates how informed consent, hardware isolation, and server-side Telegram transmission operate in compliance with modern privacy standards. No camera feeds or photos are captured without your deliberate interaction.
+              Topics explored include browser sandboxing, user gestures, and permission verification.
             </p>
             <p style="margin-top: 0.5rem; color: #94a3b8;">
-              <strong>Topics Covered:</strong> Browser Permission Sandboxes &bull; Hardware LED Status Verification &bull; Ephemeral Demonstration Sessions &bull; Secure Telegram Bot API Webhook Delivery.
+              <strong>Timestamps:</strong> 00:00 Intro &bull; 01:05 Hardware Isolation &bull; 02:15 Mobile Green Dots &bull; 03:25 Ethical Verification.
             </p>
           </div>
           <button type="button" class="desc-toggle-btn" id="btn-desc-toggle">Show more</button>
         </div>
 
-        <!-- 5. Privacy Notice & Guarantee -->
-        <div class="privacy-protocol-box" id="privacy-guarantee">
-          <div class="privacy-protocol-header">
-            <span>🔒</span>
-            <span>Strict Privacy & Informed Consent Protocol</span>
+        <!-- Video Comments Section -->
+        <section class="comments-section" aria-label="Viewer Comments">
+          <div class="comments-header">
+            <span>Comments</span>
+            <span class="comments-count">48</span>
           </div>
-          <div class="privacy-points-grid">
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>No Silent Access:</strong> Opening this website never accesses or queries your camera hardware.</span>
+
+          <div class="comment-input-row">
+            <div class="comment-avatar-mock">👤</div>
+            <input type="text" class="comment-input-field" placeholder="Add a comment..." aria-label="Add a public comment">
+          </div>
+
+          <div class="comments-list">
+            <!-- Comment 1 -->
+            <div class="comment-item">
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #10b981, #059669);">A</div>
+              <div>
+                <div class="comment-author">Alex_Cyber &bull; <span class="comment-time">2 hours ago</span></div>
+                <div class="comment-body">Really appreciated the explanation of why websites can't turn on the webcam without a user click. The browser sandbox is truly powerful.</div>
+                <div class="comment-actions"><span>👍 24</span> &bull; <span>Reply</span></div>
+              </div>
             </div>
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>Explicit Permission Only:</strong> Camera access is requested solely if you press &quot;Enable Camera&quot;.</span>
+
+            <!-- Comment 2 -->
+            <div class="comment-item">
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">M</div>
+              <div>
+                <div class="comment-author">Maria Dev &bull; <span class="comment-time">5 hours ago</span></div>
+                <div class="comment-body">That visual diagram at 02:30 explaining the hardware permission barrier was super clear. Thanks for making this!</div>
+                <div class="comment-actions"><span>👍 18</span> &bull; <span>Reply</span></div>
+              </div>
             </div>
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>No Live Streaming Feed:</strong> Demonstration does not broadcast or stream live video feeds.</span>
-            </div>
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>Review Before Send:</strong> You inspect the snapshot before choosing whether to submit or discard.</span>
-            </div>
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>Telegram Destination:</strong> Photos are sent strictly to the administrator's configured Telegram bot chat.</span>
-            </div>
-            <div class="privacy-point">
-              <span class="privacy-icon">✓</span>
-              <span><strong>Instant Teardown:</strong> All camera tracks stop immediately when you leave, cancel, or finish.</span>
+
+            <!-- Comment 3 -->
+            <div class="comment-item">
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #f59e0b, #d97706);">K</div>
+              <div>
+                <div class="comment-author">Kevin_Security &bull; <span class="comment-time">1 day ago</span></div>
+                <div class="comment-body">Great guide. Always reassuring to understand how browser permissions protect everyday users.</div>
+                <div class="comment-actions"><span>👍 9</span> &bull; <span>Reply</span></div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
       </div>
 
-      <!-- Right Column: Sidebar with Recommended Topics & Separate Demo Link -->
-      <aside class="video-side-column" aria-label="Related Topics">
+      <!-- Sidebar Column: Sponsored Ad & Recommended Videos -->
+      <aside class="video-side-column" aria-label="Up Next & Recommended">
+        
+        <!-- Sidebar Ad Banner -->
+        <div class="sidebar-ad-box">
+          <span class="ad-badge">Promoted</span>
+          <div style="font-size: 0.9rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">GuardKey Authenticator</div>
+          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.35rem 0 0.75rem;">FIDO2 hardware security keys for frictionless zero-trust logins.</p>
+          <a href="#sponsor" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none;">Learn More</a>
+        </div>
+
         <div class="sidebar-header">
           <span>📺</span>
-          <span>Recommended Security Topics</span>
+          <span>Up Next</span>
         </div>
 
         <div class="sidebar-cards-list">
           
-          <!-- Card 1: Separate Educational Camera Demonstration Link -->
+          <!-- Separate Educational Camera Test Link Card -->
           <a href="./demo.html" class="video-card-mini" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.4);">
             <div class="mini-thumb" style="background: linear-gradient(135deg, #1d4ed8, #0284c7);">
               <span style="font-size: 1.5rem;">📷</span>
-              <span class="mini-duration" style="background: #2563eb;">Audit</span>
+              <span class="mini-duration" style="background: #2563eb;">Interactive</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title" style="color: #60a5fa; font-weight: 700;">Educational Camera Security Demonstration</div>
-              <div class="mini-meta">Launch the separate, consent-based permission audit &rarr;</div>
+              <div class="mini-title" style="color: #60a5fa; font-weight: 700;">Educational Camera Security Test</div>
+              <div class="mini-meta">Launch the separate, consent-based permission test &rarr;</div>
             </div>
           </a>
 
-          <!-- Card 2 -->
+          <!-- Video 1 -->
           <div class="video-card-mini" id="mini-card-1">
             <div class="mini-thumb mini-thumb-gradient-1">
               <span style="font-size: 1.5rem;">🔒</span>
@@ -229,11 +255,11 @@
             </div>
             <div class="mini-info">
               <div class="mini-title">Understanding Browser Sandboxes & Permission Gates</div>
-              <div class="mini-meta">Camera Security Lab &bull; 9.4K views</div>
+              <div class="mini-meta">PrivacyTech &bull; 9.4K views</div>
             </div>
           </div>
 
-          <!-- Card 3 -->
+          <!-- Video 2 -->
           <div class="video-card-mini" id="mini-card-2">
             <div class="mini-thumb mini-thumb-gradient-2">
               <span style="font-size: 1.5rem;">🟢</span>
@@ -241,11 +267,11 @@
             </div>
             <div class="mini-info">
               <div class="mini-title">Mobile OS Privacy: What iOS & Android Green Dots Mean</div>
-              <div class="mini-meta">Camera Security Lab &bull; 18.2K views</div>
+              <div class="mini-meta">PrivacyTech &bull; 18.2K views</div>
             </div>
           </div>
 
-          <!-- Card 4 -->
+          <!-- Video 3 -->
           <div class="video-card-mini" id="mini-card-3">
             <div class="mini-thumb mini-thumb-gradient-3">
               <span style="font-size: 1.5rem;">✈️</span>
@@ -253,19 +279,19 @@
             </div>
             <div class="mini-info">
               <div class="mini-title">Telegram Bot API Architecture: End-to-End Media Delivery</div>
-              <div class="mini-meta">Camera Security Lab &bull; 12.1K views</div>
+              <div class="mini-meta">PrivacyTech &bull; 12.1K views</div>
             </div>
           </div>
 
-          <!-- Admin Portal Card -->
+          <!-- Admin Console Link -->
           <a href="./admin.html" class="video-card-mini" style="background: rgba(30, 58, 138, 0.2); border-color: rgba(59, 130, 246, 0.3);">
             <div class="mini-thumb" style="background: linear-gradient(135deg, #1e293b, #334155);">
               <span style="font-size: 1.5rem;">⚙️</span>
               <span class="mini-duration">Admin</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title" style="color: #cbd5e1;">Administrator Console & Link Generator</div>
-              <div class="mini-meta">Issue & revoke custom demonstration sessions &rarr;</div>
+              <div class="mini-title" style="color: #cbd5e1;">Administrator Console</div>
+              <div class="mini-meta">Manage sessions and backend settings &rarr;</div>
             </div>
           </a>
 
@@ -283,13 +309,12 @@
   <!-- Footer -->
   <footer class="app-footer">
     <p>
-      Camera Security Demo &bull; Educational Consent & Permission Platform &bull; Built with standard Web MediaDevices API & Telegram Bot API
+      StreamSafe Media &bull; Educational Tech & Cybersecurity Channel &bull; Built with HTML, CSS, JavaScript
     </p>
     <p style="margin-top: 0.5rem; font-size: 0.75rem;">
-      <a href="./demo.html" style="color: #38bdf8; text-decoration: none;">Camera Demonstration</a> &bull;
-      <a href="./admin.html" style="color: #38bdf8; text-decoration: none;">Administrator Console</a> &bull;
-      <a href="#privacy-guarantee" style="color: #38bdf8; text-decoration: none;">Privacy Protocol</a> &bull;
-      Backend hosted on Render &bull; Frontend on GitHub Pages
+      <a href="./demo.html" style="color: #38bdf8; text-decoration: none;">Camera Security Test</a> &bull;
+      <a href="./admin.html" style="color: #38bdf8; text-decoration: none;">Admin Console</a> &bull;
+      Backend on Render &bull; Frontend on GitHub Pages
     </p>
   </footer>
 
