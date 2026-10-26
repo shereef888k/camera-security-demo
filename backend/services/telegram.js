@@ -8,36 +8,76 @@ class TelegramService {
   }
 
   /**
-   * Returns current active bot credentials from environment.
-   * Strips accidental whitespace and surrounding quotes.
+   * Returns sanitized bot credentials from environment variables.
+   * Strips accidental whitespace, surrounding quotes, and URL/bot prefixes.
    */
   getCredentials() {
     const rawToken = process.env.TELEGRAM_BOT_TOKEN || '';
     const rawChatId = process.env.TELEGRAM_CHAT_ID || '';
 
-    const botToken = String(rawToken).trim().replace(/^["']|["']$/g, '');
+    // Strip whitespace and surrounding single or double quotes
+    let botToken = String(rawToken).trim().replace(/^["']|["']$/g, '');
     const chatId = String(rawChatId).trim().replace(/^["']|["']$/g, '');
+
+    // Normalize: remove accidental "bot" prefix or full Telegram URL if user pasted the entire webhook/API URL
+    botToken = botToken
+      .replace(/^https?:\/\/api\.telegram\.org\/bot/i, '')
+      .replace(/^bot/i, '');
 
     return { botToken, chatId };
   }
 
   /**
-   * Verifies if Telegram configuration is present and valid
+   * Validates Telegram credentials and returns detailed diagnostic information
+   * without exposing secrets.
    */
-  isConfigured() {
+  validateConfiguration() {
     const { botToken, chatId } = this.getCredentials();
+    const missing = [];
+
+    if (!botToken) missing.push('TELEGRAM_BOT_TOKEN');
+    if (!chatId) missing.push('TELEGRAM_CHAT_ID');
+
+    if (missing.length > 0) {
+      return {
+        configured: false,
+        reason: `Missing required environment variable(s): ${missing.join(', ')}`
+      };
+    }
+
     const isPlaceholder = (
       botToken.includes('example') ||
       botToken.includes('Placeholder') ||
       botToken === 'replace_with_your_telegram_bot_token'
     );
 
-    return Boolean(
-      botToken &&
-      chatId &&
-      !isPlaceholder &&
-      /^\d+:[A-Za-z0-9_-]+$/.test(botToken)
-    );
+    if (isPlaceholder) {
+      return {
+        configured: false,
+        reason: 'TELEGRAM_BOT_TOKEN is set to a placeholder value'
+      };
+    }
+
+    // Standard Telegram Bot token pattern: <bot_id>:<alphanumeric_auth_token>
+    if (!/^\d+:[A-Za-z0-9_-]+$/.test(botToken)) {
+      return {
+        configured: false,
+        reason: 'TELEGRAM_BOT_TOKEN format is invalid (must be in format: 123456789:ABCdefGHI...)'
+      };
+    }
+
+    return {
+      configured: true,
+      botToken,
+      chatId
+    };
+  }
+
+  /**
+   * Verifies if Telegram configuration is present and valid
+   */
+  isConfigured() {
+    return this.validateConfiguration().configured;
   }
 
   /**
@@ -53,15 +93,16 @@ class TelegramService {
    * @returns {Promise<{ ok: boolean, messageId?: number }>}
    */
   async sendPhoto({ photoBuffer, filename = 'photo.jpg', mimeType = 'image/jpeg', sessionId, label, timestamp }) {
-    const { botToken, chatId } = this.getCredentials();
+    const check = this.validateConfiguration();
 
-    if (!this.isConfigured()) {
-      const err = new Error('Telegram Bot is not configured. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in the backend environment variables.');
+    if (!check.configured) {
+      const err = new Error(`Telegram Bot is not configured: ${check.reason}. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in the backend environment variables.`);
       err.code = 'TELEGRAM_NOT_CONFIGURED';
       err.statusCode = 503;
       throw err;
     }
 
+    const { botToken, chatId } = check;
     const captionTimestamp = timestamp || new Date().toISOString();
     const formattedCaption = [
       '🛡️ Camera Security Demonstration',

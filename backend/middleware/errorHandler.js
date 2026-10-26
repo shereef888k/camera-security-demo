@@ -35,8 +35,10 @@ function errorHandler(err, req, res, next) {
   const statusCode = err.statusCode || 500;
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Sanitize internal server errors in production to prevent stack or path leaks
-  const isInternalError = statusCode >= 500;
+  // Sanitize unhandled internal server errors (500) in production to prevent stack or path leaks.
+  // Intentional operational errors (4xx, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout)
+  // carry safe, sanitized error descriptions designed for clients.
+  const isInternalError = statusCode === 500;
   const clientMessage = (isProduction && isInternalError)
     ? 'An internal server error occurred.'
     : (err.message || 'An internal server error occurred.');

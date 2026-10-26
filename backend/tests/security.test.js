@@ -16,6 +16,7 @@ describe('Security & Infrastructure Tests', () => {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.status, 'ok');
     assert.strictEqual(res.body.database, 'connected');
+    assert.strictEqual(typeof res.body.telegramConfigured, 'boolean');
     assert.ok(typeof res.body.uptimeSeconds === 'number');
     assert.ok(res.body.version);
   });

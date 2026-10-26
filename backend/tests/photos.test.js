@@ -260,7 +260,72 @@ describe('Photo Submission & Telegram Integration API', () => {
     assert.strictEqual(photoRes.status, 503);
     assert.strictEqual(photoRes.body.success, false);
     assert.match(photoRes.body.error, /Telegram Bot is not configured/i);
+    assert.match(photoRes.body.error, /placeholder/i);
 
     process.env.TELEGRAM_BOT_TOKEN = originalToken;
+  });
+
+  test('POST /api/sessions/:id/photo — Reports specifically when TELEGRAM_BOT_TOKEN is missing', async () => {
+    const originalToken = process.env.TELEGRAM_BOT_TOKEN;
+    delete process.env.TELEGRAM_BOT_TOKEN;
+
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'test.jpg');
+
+    assert.strictEqual(photoRes.status, 503);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /TELEGRAM_BOT_TOKEN/i);
+
+    process.env.TELEGRAM_BOT_TOKEN = originalToken;
+  });
+
+  test('POST /api/sessions/:id/photo — Reports specifically when TELEGRAM_CHAT_ID is missing', async () => {
+    const originalChatId = process.env.TELEGRAM_CHAT_ID;
+    delete process.env.TELEGRAM_CHAT_ID;
+
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'test.jpg');
+
+    assert.strictEqual(photoRes.status, 503);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /TELEGRAM_CHAT_ID/i);
+
+    process.env.TELEGRAM_CHAT_ID = originalChatId;
+  });
+
+  test('Telegram Service — Sanitizes whitespace, quotes, and bot prefixes from credentials', () => {
+    const origToken = process.env.TELEGRAM_BOT_TOKEN;
+    const origChat = process.env.TELEGRAM_CHAT_ID;
+
+    process.env.TELEGRAM_BOT_TOKEN = '  "bot123456789:ABCdefGHIjklMNOpqrSTUvwxYZ"  ';
+    process.env.TELEGRAM_CHAT_ID = " '8850899217' ";
+
+    const creds = telegramService.getCredentials();
+    assert.strictEqual(creds.botToken, '123456789:ABCdefGHIjklMNOpqrSTUvwxYZ');
+    assert.strictEqual(creds.chatId, '8850899217');
+
+    const validation = telegramService.validateConfiguration();
+    assert.strictEqual(validation.configured, true);
+    assert.strictEqual(validation.botToken, '123456789:ABCdefGHIjklMNOpqrSTUvwxYZ');
+    assert.strictEqual(validation.chatId, '8850899217');
+
+    process.env.TELEGRAM_BOT_TOKEN = origToken;
+    process.env.TELEGRAM_CHAT_ID = origChat;
   });
 });

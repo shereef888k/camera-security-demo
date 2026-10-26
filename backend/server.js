@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 const db = require('./services/db');
+const telegramService = require('./services/telegram');
 const sessionsRouter = require('./routes/sessions');
 const photosRouter = require('./routes/photos');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -118,7 +119,8 @@ app.get('/api/health', (req, res) => {
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    database: 'connected'
+    database: 'connected',
+    telegramConfigured: telegramService.isConfigured()
   });
 });
 
@@ -142,6 +144,7 @@ if (require.main === module) {
     console.log(`   Environment:     ${process.env.NODE_ENV || 'development'}`);
     console.log(`   Database:        ${process.env.DATABASE_PATH || 'data/sessions.db'}`);
     console.log(`   Allowed Origins: ${allowedOrigins.join(', ')}`);
+    console.log(`   Telegram Status: ${telegramService.isConfigured() ? 'Configured ✅' : 'Not Configured ⚠️'}`);
     console.log(`====================================================`);
   });
 
