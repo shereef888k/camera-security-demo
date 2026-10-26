@@ -8,9 +8,8 @@
  */
 
 const CONFIG = {
-  // Replace this with your deployed backend URL in production (e.g., 'https://my-security-demo-api.onrender.com')
-  // In local development, you can leave it as 'http://localhost:4000'
-  DEFAULT_API_BASE_URL: 'http://localhost:4000',
+  // Deployed production backend on Render
+  DEFAULT_API_BASE_URL: 'https://camera-security-demo-1.onrender.com',
 
   // Fallback / Auto-resolution:
   // If the admin specifies an API URL in the Dashboard settings or via query param (?api=...), use that;
