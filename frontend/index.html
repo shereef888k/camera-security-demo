@@ -46,13 +46,13 @@
   <main class="container">
     <div class="video-page-grid">
       
-      <!-- Left Column: Video Player, Metadata, Actions, & Camera Demo Section -->
+      <!-- Left Column: Video Player, Metadata, Actions, & Educational Details -->
       <div class="video-main-column">
         
         <!-- 1. Video Player Container (Does NOT open camera or request permission) -->
         <div class="video-player-wrapper" id="video-player-wrapper" role="region" aria-label="Educational Demonstration Video">
           
-          <!-- Default Video Poster / Thumbnail -->
+          <!-- Default Video Poster / Thumbnail with Play Button -->
           <div class="video-poster" id="video-poster">
             <div class="poster-top-bar">
               <span class="poster-badge">🛡️ SECURITY AUDIT SERIES</span>
@@ -64,14 +64,14 @@
               <div class="play-button-glow" id="btn-poster-play" role="button" aria-label="Play educational demonstration video">
                 <span>▶</span>
               </div>
-              <span class="play-label">Watch Educational Demo</span>
+              <span class="play-label">Watch Educational Video</span>
             </div>
 
             <!-- Poster Bottom Meta -->
             <div class="poster-bottom-bar">
               <div class="poster-title-overlay">
                 <div class="poster-series-tag">EPISODE 04 &bull; BROWSER HARDWARE ISOLATION</div>
-                <div class="poster-main-title">Webcam Security & Ethical Permission Auditing</div>
+                <div class="poster-main-title">Webcam Security & Browser Permission Architecture</div>
               </div>
               <div class="poster-duration">04:18</div>
             </div>
@@ -105,7 +105,7 @@
         <!-- 2. Video Title & Metric Row -->
         <div class="video-title-area">
           <h1 class="video-primary-title">
-            Webcam Security & Ethical Permission Auditing — Demonstration Video
+            Webcam Security & Browser Permission Architecture — Demonstration Video
           </h1>
           
           <div class="video-metrics-bar">
@@ -120,14 +120,14 @@
               <button type="button" class="action-chip" id="btn-share-page">
                 <span>🔗</span> <span>Share</span>
               </button>
-              <a href="#camera-demo-section" class="action-chip" style="text-decoration: none;">
-                <span>📷</span> <span>Jump to Demo</span>
-              </a>
+              <button type="button" class="action-chip" id="btn-save-video">
+                <span>🔖</span> <span>Save</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- 3. Channel / Author Bar with Primary Call to Actions -->
+        <!-- 3. Channel / Author Bar -->
         <div class="channel-row">
           <div class="channel-identity">
             <div class="channel-avatar">🛡️</div>
@@ -140,13 +140,9 @@
             </div>
           </div>
 
-          <!-- Two Separate Buttons: Watch Demo & Try Camera Security Demo -->
           <div class="channel-cta-buttons">
-            <button type="button" class="btn btn-secondary btn-watch-demo" id="btn-watch-demo">
-              <span>▶ Watch Demo</span>
-            </button>
-            <button type="button" class="btn-try-camera-cta" id="btn-try-camera-cta">
-              <span>📷 Try Camera Security Demo</span>
+            <button type="button" class="btn btn-primary btn-watch-demo" id="btn-watch-demo">
+              <span>▶ Watch Video</span>
             </button>
           </div>
         </div>
@@ -159,7 +155,7 @@
               Modern web browsers isolate hardware peripherals (cameras, microphones, sensors) behind the strict <code>navigator.mediaDevices.getUserMedia()</code> security boundary. A website can <em>never</em> silently capture or stream your camera feed without an explicit, user-initiated action.
             </p>
             <p style="margin-top: 0.5rem;">
-              This interactive platform demonstrates how informed consent, local canvas rendering, and server-side Telegram transmission operate in compliance with modern privacy standards. No camera feeds or photos are captured without your deliberate interaction.
+              This interactive platform demonstrates how informed consent, hardware isolation, and server-side Telegram transmission operate in compliance with modern privacy standards. No camera feeds or photos are captured without your deliberate interaction.
             </p>
             <p style="margin-top: 0.5rem; color: #94a3b8;">
               <strong>Topics Covered:</strong> Browser Permission Sandboxes &bull; Hardware LED Status Verification &bull; Ephemeral Demonstration Sessions &bull; Secure Telegram Bot API Webhook Delivery.
@@ -185,7 +181,7 @@
             </div>
             <div class="privacy-point">
               <span class="privacy-icon">✓</span>
-              <span><strong>Local Viewfinder:</strong> Live video preview stays in your device's browser memory only.</span>
+              <span><strong>No Live Streaming Feed:</strong> Demonstration does not broadcast or stream live video feeds.</span>
             </div>
             <div class="privacy-point">
               <span class="privacy-icon">✓</span>
@@ -202,179 +198,9 @@
           </div>
         </div>
 
-        <!-- 6. Camera Security Demo Section (Clearly Identified) -->
-        <section class="camera-section-wrapper" id="camera-demo-section" aria-labelledby="demo-heading">
-          <div class="card" style="border: 2px solid var(--border-medium); box-shadow: var(--shadow-lg);">
-            
-            <div class="card-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1.25rem;">
-              <div>
-                <h2 id="demo-heading" class="card-title">📷 Interactive Camera Security Demonstration</h2>
-                <div class="card-description">
-                  Audits your browser's camera permission handling in real-time.
-                </div>
-              </div>
-              <div id="session-badge-container">
-                <span class="badge badge-created" id="session-status-badge">Ready for Testing</span>
-              </div>
-            </div>
-
-            <!-- Screen 1: Consent & Enable Camera -->
-            <div id="screen-consent">
-              <div class="notice notice-info" style="margin-bottom: 1.25rem;">
-                <div>
-                  <strong>Why Camera Access Is Requested:</strong>
-                  <p style="margin-top: 0.35rem; line-height: 1.5;">
-                    To demonstrate how browsers guard hardware cameras, this test will prompt you for temporary camera permission. A snapshot will be captured only when you press &quot;Capture Photo&quot;, and delivered to the configured Telegram chat only after you review and submit it.
-                  </p>
-                </div>
-              </div>
-
-              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                <span style="font-size: 0.85rem; color: var(--text-muted);">Session Reference:</span>
-                <span class="code-pill" id="display-session-id">Generating Session...</span>
-              </div>
-
-              <!-- Camera Error / Permission Denied Notice Container -->
-              <div id="camera-error-container" style="display: none; margin-bottom: 1.25rem;"></div>
-
-              <div class="action-controls">
-                <button type="button" id="btn-agree-start" class="btn btn-primary" style="width: 100%; font-size: 1rem; padding: 0.85rem;">
-                  <span>📷 Enable Camera</span>
-                </button>
-                <div class="controls-row">
-                  <a href="#video-player-wrapper" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center;">
-                    <span>Return to Video</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Screen 2: Live Camera Viewfinder & Photo Capture -->
-            <div id="screen-camera" style="display: none;">
-              <div class="notice notice-info" style="margin-bottom: 1rem;">
-                <p><strong>Camera Live:</strong> Preview is rendering locally. No data is being recorded or sent to any server.</p>
-              </div>
-
-              <!-- Camera Viewport Box -->
-              <div class="camera-container" id="camera-container" role="region" aria-label="Camera Live Preview">
-                <video id="camera-video" class="camera-video mirrored" autoplay playsinline muted></video>
-                <canvas id="camera-canvas" class="camera-canvas-preview" style="display: none;"></canvas>
-
-                <!-- HUD Overlays -->
-                <div class="viewfinder-reticle" id="viewfinder-reticle">
-                  <div class="reticle-corner tl"></div>
-                  <div class="reticle-corner tr"></div>
-                  <div class="reticle-corner bl"></div>
-                  <div class="reticle-corner br"></div>
-                  <div class="reticle-center"></div>
-                </div>
-
-                <div class="viewfinder-badge" id="viewfinder-live-badge">
-                  <span class="live-pulse"></span>
-                  <span>LIVE PREVIEW</span>
-                </div>
-
-                <div class="review-tag" id="viewfinder-review-badge" style="display: none;">
-                  <span>📸 Captured — Review Before Sending</span>
-                </div>
-
-                <div class="viewfinder-tools" id="viewfinder-tools">
-                  <button type="button" id="btn-switch-camera" class="btn btn-secondary btn-sm" title="Switch between front and back camera" style="display: none;">
-                    <span>🔄 Flip Camera</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Controls: Preview Mode (Capture button) -->
-              <div id="controls-preview" class="action-controls">
-                <button type="button" id="btn-capture" class="btn btn-primary" style="width: 100%; font-size: 1rem; padding: 0.85rem;">
-                  <span>⚪ Capture Photo</span>
-                </button>
-                <div class="controls-row">
-                  <button type="button" id="btn-cancel-demo" class="btn btn-secondary" style="flex: 1;">
-                    <span>Exit Demo & Stop Camera</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Controls: Review Mode (Submit / Retake / Discard) -->
-              <div id="controls-review" class="action-controls" style="display: none;">
-                <div class="notice notice-info" style="margin-bottom: 0.75rem;">
-                  <p><strong>Destination:</strong> Submitting this photo will transmit it directly to the administrator's configured Telegram chat.</p>
-                </div>
-                <button type="button" id="btn-submit-photo" class="btn btn-success" style="width: 100%; font-size: 1rem; padding: 0.85rem;">
-                  <span>🚀 Submit Photo to Telegram</span>
-                </button>
-                <div class="controls-row" style="margin-top: 0.75rem;">
-                  <button type="button" id="btn-retake-photo" class="btn btn-secondary" style="flex: 1;">
-                    <span>🔄 Retake Photo</span>
-                  </button>
-                  <button type="button" id="btn-cancel-review" class="btn btn-danger" style="flex: 1;">
-                    <span>Cancel & Discard</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Screen 3: Submission Confirmation Receipt -->
-            <div id="screen-success" class="receipt-card" style="display: none;">
-              <div class="receipt-icon">✓</div>
-              <h3 style="font-size: 1.4rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
-                Photo Transmitted Successfully
-              </h3>
-              <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.25rem;">
-                Your snapshot was delivered to the administrator's Telegram chat.
-              </p>
-
-              <div class="notice notice-success" style="text-align: left; margin-bottom: 1.25rem;">
-                <div>
-                  <strong>Audit Receipt:</strong>
-                  <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.35rem;">
-                    <li>&bull; <strong>Session Reference:</strong> <span id="receipt-session-id" class="code-pill">—</span></li>
-                    <li>&bull; <strong>Delivered At:</strong> <span id="receipt-timestamp" style="color: var(--text-main);">—</span></li>
-                    <li>&bull; <strong>Camera Hardware:</strong> <span style="color: #34d399;">All tracks stopped & disconnected</span></li>
-                    <li>&bull; <strong>Data Retention:</strong> <span style="color: #93c5fd;">Single-use transmission; no permanent copy retained</span></li>
-                  </ul>
-                </div>
-              </div>
-
-              <button type="button" id="btn-finish-exit" class="btn btn-primary" style="width: 100%;">
-                <span>Restart Demonstration</span>
-              </button>
-            </div>
-
-            <!-- Screen 4: Demonstration Cancelled -->
-            <div id="screen-cancelled" class="receipt-card" style="display: none;">
-              <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔒</div>
-              <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
-                Demonstration Cancelled
-              </h3>
-              <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">
-                Camera hardware access was stopped immediately. No photos were taken or transmitted.
-              </p>
-              <button type="button" id="btn-restart-demo" class="btn btn-primary" style="width: 100%;">
-                <span>Try Demonstration Again</span>
-              </button>
-            </div>
-
-            <!-- Screen 5: Invalid / Expired Session -->
-            <div id="screen-invalid" style="display: none; text-align: center; padding: 1.5rem 0.5rem;">
-              <div style="font-size: 3rem; margin-bottom: 0.5rem;">🚫</div>
-              <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;" id="invalid-title">Session Unavailable</h3>
-              <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0.75rem 0 1.25rem;" id="invalid-message">
-                This demonstration session is no longer active.
-              </p>
-              <button type="button" id="btn-new-demo-session" class="btn btn-primary" style="width: 100%;">
-                <span>Create Fresh Session</span>
-              </button>
-            </div>
-
-          </div>
-        </section>
-
       </div>
 
-      <!-- Right Column: Sidebar with Recommended Topics -->
+      <!-- Right Column: Sidebar with Recommended Topics & Separate Demo Link -->
       <aside class="video-side-column" aria-label="Related Topics">
         <div class="sidebar-header">
           <span>📺</span>
@@ -383,7 +209,19 @@
 
         <div class="sidebar-cards-list">
           
-          <!-- Card 1 -->
+          <!-- Card 1: Separate Educational Camera Demonstration Link -->
+          <a href="./demo.html" class="video-card-mini" style="background: rgba(37, 99, 235, 0.15); border: 1px solid rgba(59, 130, 246, 0.4);">
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #1d4ed8, #0284c7);">
+              <span style="font-size: 1.5rem;">📷</span>
+              <span class="mini-duration" style="background: #2563eb;">Audit</span>
+            </div>
+            <div class="mini-info">
+              <div class="mini-title" style="color: #60a5fa; font-weight: 700;">Educational Camera Security Demonstration</div>
+              <div class="mini-meta">Launch the separate, consent-based permission audit &rarr;</div>
+            </div>
+          </a>
+
+          <!-- Card 2 -->
           <div class="video-card-mini" id="mini-card-1">
             <div class="mini-thumb mini-thumb-gradient-1">
               <span style="font-size: 1.5rem;">🔒</span>
@@ -395,7 +233,7 @@
             </div>
           </div>
 
-          <!-- Card 2 -->
+          <!-- Card 3 -->
           <div class="video-card-mini" id="mini-card-2">
             <div class="mini-thumb mini-thumb-gradient-2">
               <span style="font-size: 1.5rem;">🟢</span>
@@ -407,7 +245,7 @@
             </div>
           </div>
 
-          <!-- Card 3 -->
+          <!-- Card 4 -->
           <div class="video-card-mini" id="mini-card-3">
             <div class="mini-thumb mini-thumb-gradient-3">
               <span style="font-size: 1.5rem;">✈️</span>
@@ -419,26 +257,14 @@
             </div>
           </div>
 
-          <!-- Card 4 -->
-          <div class="video-card-mini" id="mini-card-4">
-            <div class="mini-thumb mini-thumb-gradient-4">
-              <span style="font-size: 1.5rem;">🛡️</span>
-              <span class="mini-duration">06:15</span>
-            </div>
-            <div class="mini-info">
-              <div class="mini-title">Ethical Penetration Testing & Consent Principles</div>
-              <div class="mini-meta">Camera Security Lab &bull; 7.8K views</div>
-            </div>
-          </div>
-
           <!-- Admin Portal Card -->
-          <a href="./admin.html" class="video-card-mini" style="background: rgba(30, 58, 138, 0.25); border-color: rgba(59, 130, 246, 0.4);">
-            <div class="mini-thumb" style="background: linear-gradient(135deg, #1d4ed8, #0284c7);">
+          <a href="./admin.html" class="video-card-mini" style="background: rgba(30, 58, 138, 0.2); border-color: rgba(59, 130, 246, 0.3);">
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #1e293b, #334155);">
               <span style="font-size: 1.5rem;">⚙️</span>
               <span class="mini-duration">Admin</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title" style="color: #60a5fa;">Administrator Console & Link Generator</div>
+              <div class="mini-title" style="color: #cbd5e1;">Administrator Console & Link Generator</div>
               <div class="mini-meta">Issue & revoke custom demonstration sessions &rarr;</div>
             </div>
           </a>
@@ -460,6 +286,7 @@
       Camera Security Demo &bull; Educational Consent & Permission Platform &bull; Built with standard Web MediaDevices API & Telegram Bot API
     </p>
     <p style="margin-top: 0.5rem; font-size: 0.75rem;">
+      <a href="./demo.html" style="color: #38bdf8; text-decoration: none;">Camera Demonstration</a> &bull;
       <a href="./admin.html" style="color: #38bdf8; text-decoration: none;">Administrator Console</a> &bull;
       <a href="#privacy-guarantee" style="color: #38bdf8; text-decoration: none;">Privacy Protocol</a> &bull;
       Backend hosted on Render &bull; Frontend on GitHub Pages

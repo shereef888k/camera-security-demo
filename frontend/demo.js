@@ -1,20 +1,18 @@
 /**
  * Video Landing Page & Camera Security Demonstration Logic
- * Modern video portal experience with consent-based camera security auditing
+ * Strict consent-based security architecture with automatic single capture and Telegram delivery.
  */
 
 (() => {
   'use strict';
 
-  // State Variables
+  // Common State
   let sessionId = null;
   let sessionData = null;
   let activeStream = null;
-  let currentFacingMode = 'user'; // 'user' (selfie) or 'environment' (back)
   let capturedBlob = null;
-  let hasMultipleCameras = false;
 
-  // Video Player Simulation State
+  // Video Player Simulation State (for index.html)
   let isVideoPlaying = false;
   let videoCurrentSeconds = 0;
   const videoTotalSeconds = 258; // 04:18
@@ -22,8 +20,17 @@
   let isVideoMuted = false;
   let likeCount = 1248;
   let hasLiked = false;
+  let canvasCtx = null;
 
-  // DOM: Video Player Elements
+  // =========================================================================
+  // DOM ELEMENT SELECTION
+  // =========================================================================
+
+  // Common Header & Indicator
+  const statusDot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+
+  // Video Landing Page Elements (index.html)
   const videoPlayerWrapper = document.getElementById('video-player-wrapper');
   const videoPoster = document.getElementById('video-poster');
   const btnPosterPlay = document.getElementById('btn-poster-play');
@@ -35,10 +42,7 @@
   const videoTimecode = document.getElementById('video-timecode');
   const btnPlayerMute = document.getElementById('btn-player-mute');
   const btnPlayerFullscreen = document.getElementById('btn-player-fullscreen');
-
-  // DOM: Video Actions & Description
   const btnWatchDemo = document.getElementById('btn-watch-demo');
-  const btnTryCameraCta = document.getElementById('btn-try-camera-cta');
   const btnLikeVideo = document.getElementById('btn-like-video');
   const likeCountSpan = document.getElementById('like-count');
   const btnSharePage = document.getElementById('btn-share-page');
@@ -47,73 +51,51 @@
   const toastNotification = document.getElementById('toast-notification');
   const toastText = document.getElementById('toast-text');
 
-  // DOM: Header & Backend Status
-  const statusDot = document.getElementById('status-dot');
-  const statusText = document.getElementById('status-text');
-
-  // DOM: Camera Demonstration Elements
-  const cameraDemoSection = document.getElementById('camera-demo-section');
+  // Camera Demonstration Elements (demo.html)
+  const cameraVideo = document.getElementById('camera-video');
+  const cameraCanvas = document.getElementById('camera-canvas');
   const screenConsent = document.getElementById('screen-consent');
-  const screenCamera = document.getElementById('screen-camera');
+  const screenCapturing = document.getElementById('screen-capturing');
+  const screenReview = document.getElementById('screen-review');
   const screenSuccess = document.getElementById('screen-success');
   const screenCancelled = document.getElementById('screen-cancelled');
   const screenInvalid = document.getElementById('screen-invalid');
 
-  // Badges & Labels
+  const capturingTitle = document.getElementById('capturing-title');
+  const capturingDesc = document.getElementById('capturing-desc');
   const sessionStatusBadge = document.getElementById('session-status-badge');
   const displaySessionId = document.getElementById('display-session-id');
   const receiptSessionId = document.getElementById('receipt-session-id');
   const receiptTimestamp = document.getElementById('receipt-timestamp');
-  const invalidTitle = document.getElementById('invalid-title');
-  const invalidMessage = document.getElementById('invalid-message');
-
-  // Camera Viewport Elements
-  const cameraVideo = document.getElementById('camera-video');
-  const cameraCanvas = document.getElementById('camera-canvas');
-  const viewfinderReticle = document.getElementById('viewfinder-reticle');
-  const viewfinderLiveBadge = document.getElementById('viewfinder-live-badge');
-  const viewfinderReviewBadge = document.getElementById('viewfinder-review-badge');
   const cameraErrorContainer = document.getElementById('camera-error-container');
-  const btnSwitchCamera = document.getElementById('btn-switch-camera');
 
-  // Control Sets
-  const controlsPreview = document.getElementById('controls-preview');
-  const controlsReview = document.getElementById('controls-review');
-
-  // Buttons
-  const btnAgreeStart = document.getElementById('btn-agree-start');
-  const btnCapture = document.getElementById('btn-capture');
-  const btnCancelDemo = document.getElementById('btn-cancel-demo');
-  const btnSubmitPhoto = document.getElementById('btn-submit-photo');
+  const btnConsentStart = document.getElementById('btn-consent-start');
+  const btnConfirmUpload = document.getElementById('btn-confirm-upload');
   const btnRetakePhoto = document.getElementById('btn-retake-photo');
-  const btnCancelReview = document.getElementById('btn-cancel-review');
-  const btnFinishExit = document.getElementById('btn-finish-exit');
+  const btnDiscardPhoto = document.getElementById('btn-discard-photo');
   const btnRestartDemo = document.getElementById('btn-restart-demo');
-  const btnNewDemoSession = document.getElementById('btn-new-demo-session');
+  const btnTestAgain = document.getElementById('btn-test-again');
+  const btnNewDemo = document.getElementById('btn-new-demo');
 
-  // Canvas 2D Rendering Context
-  let canvasCtx = null;
+  // =========================================================================
+  // INITIALIZATION
+  // =========================================================================
 
-  // Initialize
   async function init() {
-    bindVideoPlayerEvents();
-    bindCameraEvents();
     checkBackendHealth();
     parseSessionFromUrl();
 
-    if (sessionId) {
-      await validateSession();
-    } else {
-      displaySessionId.textContent = 'Public Demo Mode (Ready)';
-      sessionStatusBadge.textContent = 'Public Demo Ready';
-      sessionStatusBadge.className = 'badge badge-created';
+    // Check if on Video Landing Page (index.html)
+    if (videoPlayerWrapper) {
+      initLandingPage();
     }
 
-    initCanvasDimensions();
-    window.addEventListener('resize', initCanvasDimensions);
+    // Check if on Camera Demonstration Page (demo.html)
+    if (screenConsent) {
+      initDemoPage();
+    }
   }
 
-  // Parse session query parameter
   function parseSessionFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     const param = urlParams.get('session');
@@ -122,22 +104,18 @@
     }
   }
 
-  // Backend Health Ping
+  // Health check to update header status dot
   async function checkBackendHealth() {
+    if (!statusDot || !statusText) return;
     const apiUrl = window.APP_CONFIG.getApiBaseUrl();
     try {
       const response = await fetch(`${apiUrl}/api/health`, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
       });
-
       if (response.ok) {
-        const data = await response.json();
         statusDot.className = 'indicator-dot';
         statusText.textContent = 'API Online';
-        if (data.telegramConfigured === false) {
-          console.warn('[Demo] Backend reports Telegram bot credentials are not configured yet.');
-        }
       } else {
         statusDot.className = 'indicator-dot offline';
         statusText.textContent = `API Error ${response.status}`;
@@ -148,93 +126,12 @@
     }
   }
 
-  // Validate existing session from administrator
-  async function validateSession() {
-    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
-    try {
-      const response = await fetch(`${apiUrl}/api/sessions/${sessionId}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-      });
-
-      if (response.status === 404) {
-        showInvalidScreen('Session Not Found', 'This demonstration session does not exist or has expired. You can start a fresh public demo session below.');
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
-      }
-
-      sessionData = await response.json();
-      const now = new Date();
-      const expiresAt = new Date(sessionData.expiresAt);
-
-      if (sessionData.status === 'revoked') {
-        showInvalidScreen('Session Revoked', 'This demonstration session was revoked by the administrator.');
-        return;
-      }
-
-      if (sessionData.status === 'submitted') {
-        showInvalidScreen('Session Completed', 'A demonstration photo has already been submitted for this session. Links are single-use.');
-        return;
-      }
-
-      if (expiresAt < now) {
-        showInvalidScreen('Session Expired', 'This demonstration session has expired. You can start a fresh public demo session below.');
-        return;
-      }
-
-      displaySessionId.textContent = sessionId.substring(0, 16) + '...';
-      sessionStatusBadge.textContent = 'Active Session';
-      sessionStatusBadge.className = 'badge badge-opened';
-
-    } catch (err) {
-      console.warn('[Demo] Validation warning:', err.message);
-      displaySessionId.textContent = sessionId ? sessionId.substring(0, 12) + '...' : 'Public Demo Mode';
-    }
-  }
-
-  // Ensure a valid session exists before camera submission
-  async function ensureSessionReady() {
-    if (sessionId && sessionData && sessionData.status === 'created') {
-      return sessionId;
-    }
-
-    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
-    try {
-      const response = await fetch(`${apiUrl}/api/sessions/demo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: 'Visitor Landing Page Test' })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        sessionId = data.session.id;
-        sessionData = data.session;
-        displaySessionId.textContent = sessionId.substring(0, 16) + '...';
-        return sessionId;
-      }
-    } catch (e) {
-      console.warn('[Demo] Could not create server session, using local session ID:', e.message);
-    }
-
-    if (!sessionId) {
-      // Fallback local hex session ID
-      sessionId = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
-      displaySessionId.textContent = sessionId.substring(0, 16) + '... (Local)';
-    }
-    return sessionId;
-  }
-
   // =========================================================================
-  // VIDEO PLAYER SIMULATION & INTERACTIVE DEMONSTRATION
+  // LANDING PAGE LOGIC (index.html)
   // =========================================================================
 
-  function bindVideoPlayerEvents() {
+  function initLandingPage() {
+    // Note: NEVER requests camera permission or opens camera video on load.
     if (btnPosterPlay) {
       btnPosterPlay.addEventListener('click', startVideoPlayback);
     }
@@ -260,8 +157,8 @@
       videoScrubber.addEventListener('click', handleSeek);
     }
 
-    // Like Button
-    if (btnLikeVideo) {
+    // Like button
+    if (btnLikeVideo && likeCountSpan) {
       btnLikeVideo.addEventListener('click', () => {
         hasLiked = !hasLiked;
         btnLikeVideo.classList.toggle('active', hasLiked);
@@ -270,7 +167,7 @@
       });
     }
 
-    // Share Button
+    // Share button
     if (btnSharePage) {
       btnSharePage.addEventListener('click', async () => {
         const shareUrl = window.location.href;
@@ -283,29 +180,17 @@
       });
     }
 
-    // Description Toggle
-    if (btnDescToggle) {
+    // Description toggle
+    if (btnDescToggle && descPreview) {
       btnDescToggle.addEventListener('click', () => {
         const isExpanded = descPreview.classList.toggle('expanded');
         btnDescToggle.textContent = isExpanded ? 'Show less' : 'Show more';
       });
     }
 
-    // Jump / Try Camera CTA Buttons
-    if (btnTryCameraCta) {
-      btnTryCameraCta.addEventListener('click', () => {
-        cameraDemoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    }
-
-    // Mini Cards Click
-    document.querySelectorAll('.video-card-mini').forEach((card, index) => {
-      card.addEventListener('click', () => {
-        videoPlayerWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        videoCurrentSeconds = index * 45;
-        startVideoPlayback();
-      });
-    });
+    // Canvas resize
+    initCanvasDimensions();
+    window.addEventListener('resize', initCanvasDimensions);
   }
 
   function initCanvasDimensions() {
@@ -365,18 +250,16 @@
     videoTimecode.textContent = `${formatTime(videoCurrentSeconds)} / ${formatTime(videoTotalSeconds)}`;
   }
 
-  // Renders high-tech educational cybersecurity graphics in video canvas
   function renderEducationalVideoFrame(timestamp) {
     if (!canvasCtx || !interactiveVideoCanvas) return;
     const w = interactiveVideoCanvas.width;
     const h = interactiveVideoCanvas.height;
     const scale = w / 800;
 
-    // Dark cyber backdrop
     canvasCtx.fillStyle = '#070b14';
     canvasCtx.fillRect(0, 0, w, h);
 
-    // Dynamic grid lines
+    // Dynamic grid
     canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
     canvasCtx.lineWidth = 1;
     const gridSize = 40 * scale;
@@ -394,27 +277,26 @@
       canvasCtx.stroke();
     }
 
-    // Animated Educational Diagrams based on current playback timestamp
     const sec = videoCurrentSeconds;
     let stepTitle = '1. BROWSER HARDWARE SANDBOX ISOLATION';
-    let stepDesc = 'Untrusted Web Page &larr; Security Boundary &rarr; Device Driver';
+    let stepDesc = 'Untrusted Web Page <--> Security Sandbox <--> Device Hardware';
     let diagramColor = '#38bdf8';
 
     if (sec > 65 && sec <= 130) {
-      stepTitle = '2. THE USER-GESTURE PERMISSION BARRIER';
-      stepDesc = 'Camera access is BLOCKED unless explicitly initiated by user gesture';
+      stepTitle = '2. EXPLICIT CONSENT PERMISSION BARRIER';
+      stepDesc = 'Camera access is completely BLOCKED without an explicit user gesture';
       diagramColor = '#f59e0b';
     } else if (sec > 130 && sec <= 195) {
-      stepTitle = '3. HARDWARE INDICATOR & LOCAL VIEWPORT';
-      stepDesc = 'Green dot signals active sensor; frames render purely in local GPU memory';
+      stepTitle = '3. HARDWARE LED INDICATOR & LOCAL ACCESS';
+      stepDesc = 'Hardware light illuminates ONLY while sensor tracks are actively running';
       diagramColor = '#10b981';
     } else if (sec > 195) {
-      stepTitle = '4. INFORMED CONSENT & TELEGRAM TRANSMISSION';
-      stepDesc = 'Snapshots leave the browser ONLY when visitor clicks "Submit Photo"';
+      stepTitle = '4. CONFIRMED TELEGRAM TRANSMISSION';
+      stepDesc = 'Photos leave the browser ONLY when the participant explicitly confirms';
       diagramColor = '#818cf8';
     }
 
-    // Top Header in video
+    // Top Header
     canvasCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
     canvasCtx.fillRect(20 * scale, 20 * scale, w - 40 * scale, 55 * scale);
     canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -428,14 +310,12 @@
     canvasCtx.font = `${12 * scale}px sans-serif`;
     canvasCtx.fillText(stepDesc, 35 * scale, 65 * scale);
 
-    // Center Animated Visual Node Flow
+    // Center Nodes
     const centerX = w / 2;
     const centerY = h / 2 + 10 * scale;
 
-    // Node 1: Browser Window
     drawVisualNode(centerX - 200 * scale, centerY, '🌐 Browser Tab', 'Sandboxed Page', '#38bdf8', scale);
 
-    // Flowing pulse packet
     const packetProgress = (timestamp * 0.001) % 1;
     const packetX = (centerX - 200 * scale) + packetProgress * (400 * scale);
     canvasCtx.fillStyle = diagramColor;
@@ -443,17 +323,13 @@
     canvasCtx.arc(packetX, centerY, 6 * scale, 0, Math.PI * 2);
     canvasCtx.fill();
 
-    // Node 2: Permission Gate
     const isGateOpen = sec > 65;
     drawVisualNode(centerX, centerY, isGateOpen ? '🔓 Consent Gate' : '🔒 Permission Gate', isGateOpen ? 'User Clicked' : 'Waiting for Click', isGateOpen ? '#34d399' : '#ef4444', scale);
-
-    // Node 3: Camera Hardware
     drawVisualNode(centerX + 200 * scale, centerY, '📷 Web Camera', 'Hardware Sensor', '#a855f7', scale);
 
-    // Bottom Watermark
     canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     canvasCtx.font = `${11 * scale}px sans-serif`;
-    canvasCtx.fillText('Camera Security Demonstration • Educational Security Architecture', 30 * scale, h - 35 * scale);
+    canvasCtx.fillText('Camera Security Demonstration • Educational Permission Architecture', 30 * scale, h - 35 * scale);
   }
 
   function drawVisualNode(x, y, title, subtitle, color, scale) {
@@ -481,7 +357,6 @@
   let lastTimestamp = 0;
   function runVideoLoop(now) {
     if (!isVideoPlaying) return;
-
     if (now && lastTimestamp) {
       const deltaSec = (now - lastTimestamp) / 1000;
       videoCurrentSeconds += deltaSec;
@@ -493,16 +368,14 @@
       updateVideoTimecodeUI();
     }
     lastTimestamp = now || performance.now();
-
     renderEducationalVideoFrame(lastTimestamp);
-
     if (isVideoPlaying) {
       videoAnimFrameId = requestAnimationFrame(runVideoLoop);
     }
   }
 
   function showToast(message) {
-    if (!toastNotification) return;
+    if (!toastNotification || !toastText) return;
     toastText.textContent = message;
     toastNotification.style.display = 'block';
     setTimeout(() => {
@@ -511,192 +384,288 @@
   }
 
   // =========================================================================
-  // CAMERA DEMONSTRATION LOGIC (EXPLICIT CONSENT ARCHITECTURE)
+  // CAMERA DEMONSTRATION LOGIC (demo.html)
   // =========================================================================
 
-  function bindCameraEvents() {
-    // 1. Consent Screen: Enable Camera button
-    btnAgreeStart.addEventListener('click', handleEnableCamera);
+  async function initDemoPage() {
+    bindDemoEvents();
 
-    // 2. Live Preview Controls
-    btnCapture.addEventListener('click', handleCapturePhoto);
-    btnCancelDemo.addEventListener('click', handleCancelDemo);
-    btnSwitchCamera.addEventListener('click', handleSwitchCamera);
-
-    // 3. Review Controls
-    btnSubmitPhoto.addEventListener('click', handleSubmitPhoto);
-    btnRetakePhoto.addEventListener('click', handleRetakePhoto);
-    btnCancelReview.addEventListener('click', handleCancelDemo);
-
-    // 4. Terminal / Restart Controls
-    btnFinishExit.addEventListener('click', () => {
-      stopCameraTracks();
-      screenSuccess.style.display = 'none';
-      screenConsent.style.display = 'block';
-      sessionStatusBadge.textContent = 'Ready for Testing';
+    if (sessionId) {
+      await validateExistingSession();
+    } else {
+      displaySessionId.textContent = 'Public Demo Mode (Ready)';
+      sessionStatusBadge.textContent = 'Ready for Consent';
       sessionStatusBadge.className = 'badge badge-created';
-    });
+    }
 
-    btnRestartDemo.addEventListener('click', () => {
-      screenCancelled.style.display = 'none';
-      screenConsent.style.display = 'block';
-    });
+    // Safety: ensure all camera tracks are stopped if user navigates away
+    window.addEventListener('beforeunload', stopCameraTracks);
+    window.addEventListener('pagehide', stopCameraTracks);
+  }
 
-    if (btnNewDemoSession) {
-      btnNewDemoSession.addEventListener('click', async () => {
+  function bindDemoEvents() {
+    // 1. Consent button: Starts permission & automatic single capture
+    if (btnConsentStart) {
+      btnConsentStart.addEventListener('click', handleConsentStart);
+    }
+
+    // 2. Review confirmation: Confirms upload to Telegram
+    if (btnConfirmUpload) {
+      btnConfirmUpload.addEventListener('click', handleConfirmUpload);
+    }
+
+    // 3. Retake snapshot
+    if (btnRetakePhoto) {
+      btnRetakePhoto.addEventListener('click', handleConsentStart);
+    }
+
+    // 4. Discard & cancel
+    if (btnDiscardPhoto) {
+      btnDiscardPhoto.addEventListener('click', handleCancelDemo);
+    }
+
+    // 5. Restart from cancelled
+    if (btnRestartDemo) {
+      btnRestartDemo.addEventListener('click', () => {
+        screenCancelled.style.display = 'none';
+        screenConsent.style.display = 'block';
+      });
+    }
+
+    // 6. Test again from success
+    if (btnTestAgain) {
+      btnTestAgain.addEventListener('click', () => {
+        capturedBlob = null;
+        screenSuccess.style.display = 'none';
+        screenConsent.style.display = 'block';
+        sessionStatusBadge.textContent = 'Ready for Consent';
+        sessionStatusBadge.className = 'badge badge-created';
+      });
+    }
+
+    // 7. New demo from invalid
+    if (btnNewDemo) {
+      btnNewDemo.addEventListener('click', async () => {
         screenInvalid.style.display = 'none';
         screenConsent.style.display = 'block';
         sessionId = null;
         await ensureSessionReady();
       });
     }
-
-    // Cleanup on navigation or tab closing
-    window.addEventListener('beforeunload', stopCameraTracks);
-    window.addEventListener('pagehide', stopCameraTracks);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && activeStream) {
-        console.log('[Demo] Tab hidden, pausing camera stream for privacy');
-        stopCameraTracks();
-        if (screenCamera.style.display === 'block' && controlsPreview.style.display !== 'none') {
-          showCameraError('Camera was paused because you switched tabs. Press "Try Again" below to restart preview.', true);
-        }
-      }
-    });
   }
 
-  // Handle "Enable Camera" Button Click
-  async function handleEnableCamera() {
-    hideCameraError();
-    btnAgreeStart.disabled = true;
-    btnAgreeStart.innerHTML = '<span class="spinner"></span> Requesting Camera Access...';
+  async function validateExistingSession() {
+    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+    try {
+      const response = await fetch(`${apiUrl}/api/sessions/${sessionId}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
 
-    // Verify browser support & HTTPS
-    if (!checkBrowserCompatibility()) {
-      btnAgreeStart.disabled = false;
-      btnAgreeStart.innerHTML = '<span>📷 Enable Camera</span>';
-      return;
+      if (response.status === 404) {
+        showInvalidScreen('Session Not Found', 'This demonstration session reference does not exist or has expired.');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      sessionData = await response.json();
+      const now = new Date();
+      const expiresAt = new Date(sessionData.expiresAt);
+
+      if (sessionData.status === 'revoked') {
+        showInvalidScreen('Session Revoked', 'This demonstration session was revoked by the administrator.');
+        return;
+      }
+      if (sessionData.status === 'submitted') {
+        showInvalidScreen('Session Completed', 'A demonstration photo was already submitted for this session. Sessions are single-use.');
+        return;
+      }
+      if (expiresAt < now) {
+        showInvalidScreen('Session Expired', 'This demonstration link has expired.');
+        return;
+      }
+
+      displaySessionId.textContent = sessionId.substring(0, 16) + '...';
+      sessionStatusBadge.textContent = 'Session Verified';
+      sessionStatusBadge.className = 'badge badge-opened';
+
+    } catch (err) {
+      console.warn('[Demo] Session validation error:', err.message);
+      displaySessionId.textContent = sessionId ? sessionId.substring(0, 12) + '...' : 'Public Demo Mode';
+    }
+  }
+
+  async function ensureSessionReady() {
+    if (sessionId && sessionData && sessionData.status === 'created') {
+      return sessionId;
     }
 
-    // Ensure session reference is active
-    await ensureSessionReady();
+    const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+    try {
+      const response = await fetch(`${apiUrl}/api/sessions/demo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: 'Visitor Demo' })
+      });
 
-    screenConsent.style.display = 'none';
-    screenCamera.style.display = 'block';
+      if (response.ok) {
+        const data = await response.json();
+        sessionId = data.session.id;
+        sessionData = data.session;
+        displaySessionId.textContent = sessionId.substring(0, 16) + '...';
+        return sessionId;
+      }
+    } catch (e) {
+      console.warn('[Demo] Ephemeral session creation fallback:', e.message);
+    }
 
-    await startCameraStream();
-    btnAgreeStart.disabled = false;
-    btnAgreeStart.innerHTML = '<span>📷 Enable Camera</span>';
+    if (!sessionId) {
+      sessionId = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      displaySessionId.textContent = sessionId.substring(0, 16) + '... (Local)';
+    }
+    return sessionId;
   }
 
-  // Compatibility & Secure Context Check
-  function checkBrowserCompatibility() {
+  // =========================================================================
+  // CAMERA EXECUTION: NO LIVE PREVIEW & AUTOMATIC SINGLE CAPTURE
+  // =========================================================================
+
+  async function handleConsentStart() {
+    hideCameraError();
+    stopCameraTracks();
+    capturedBlob = null;
+
+    // Check secure context (HTTPS)
     if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
       showCameraError(
-        '<strong>HTTPS Required:</strong> Modern web browsers strictly require a secure HTTPS connection to access camera hardware. ' +
+        '<strong>HTTPS Required:</strong> Web browsers strictly require a secure HTTPS connection to access camera hardware. ' +
         'Please access this demonstration via HTTPS.',
         false
       );
-      return false;
+      return;
     }
 
+    // Check MediaDevices support
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showCameraError(
         '<strong>Unsupported Browser:</strong> Your current browser does not support the Web MediaDevices API. ' +
         'Please test using modern Safari (iOS), Chrome (Android/Desktop), Firefox, or Edge.',
         false
       );
-      return false;
+      return;
     }
 
-    return true;
-  }
+    // Ensure session is active
+    await ensureSessionReady();
 
-  // Start Camera Stream
-  async function startCameraStream() {
-    stopCameraTracks();
-    hideCameraError();
+    // Transition to capturing screen (NO LIVE PREVIEW SHOWN!)
+    screenConsent.style.display = 'none';
+    screenReview.style.display = 'none';
+    screenCapturing.style.display = 'block';
 
-    // Check for multiple cameras (e.g. mobile front/back)
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter(d => d.kind === 'videoinput');
-      hasMultipleCameras = videoInputs.length > 1;
-      btnSwitchCamera.style.display = hasMultipleCameras ? 'inline-flex' : 'none';
-    } catch (e) {
-      // Non-blocking
-    }
-
-    // Standard constraints
-    const constraints = {
-      audio: false,
-      video: {
-        facingMode: currentFacingMode,
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    };
+    capturingTitle.textContent = 'Requesting Camera Permission...';
+    capturingDesc.textContent = 'Please approve the browser prompt. In accordance with privacy rules, no live video preview will be displayed.';
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // 1. Request camera stream via standard browser permission mechanism
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+
       activeStream = stream;
       cameraVideo.srcObject = stream;
 
-      // Selfie mirror effect
-      if (currentFacingMode === 'user') {
-        cameraVideo.classList.add('mirrored');
-      } else {
-        cameraVideo.classList.remove('mirrored');
-      }
+      capturingTitle.textContent = 'Permission Granted — Capturing Snapshot...';
+      capturingDesc.textContent = 'Automatically taking single test photo. Camera will turn off immediately.';
 
-      await cameraVideo.play();
+      // 2. Wait for camera video element to receive video data
+      await new Promise((resolve) => {
+        if (cameraVideo.readyState >= 2 && cameraVideo.videoWidth > 0) {
+          resolve();
+        } else {
+          cameraVideo.onloadedmetadata = () => resolve();
+          // Safety timeout in case onloadedmetadata doesn't fire
+          setTimeout(resolve, 800);
+        }
+      });
 
-      // UI States
-      cameraVideo.style.display = 'block';
-      cameraCanvas.style.display = 'none';
-      viewfinderReticle.style.display = 'flex';
-      viewfinderLiveBadge.style.display = 'flex';
-      viewfinderReviewBadge.style.display = 'none';
-      controlsPreview.style.display = 'block';
-      controlsReview.style.display = 'none';
+      // Allow 400ms for hardware auto-exposure / white-balance stabilization
+      await new Promise(r => setTimeout(r, 400));
 
-      sessionStatusBadge.textContent = 'Camera Active';
+      // 3. Automatically capture ONE photo onto the canvas
+      const vw = cameraVideo.videoWidth || 640;
+      const vh = cameraVideo.videoHeight || 480;
+      cameraCanvas.width = vw;
+      cameraCanvas.height = vh;
+
+      const ctx = cameraCanvas.getContext('2d');
+      // Mirror horizontally for natural selfie view
+      ctx.translate(vw, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(cameraVideo, 0, 0, vw, vh);
+
+      // 4. CRITICAL: Stop all camera tracks IMMEDIATELY after capture!
+      stopCameraTracks();
+
+      // 5. Generate image Blob from canvas
+      await new Promise(resolve => {
+        cameraCanvas.toBlob((blob) => {
+          capturedBlob = blob;
+          resolve();
+        }, 'image/jpeg', 0.88);
+      });
+
+      // 6. Transition to Review & Confirmation Screen
+      screenCapturing.style.display = 'none';
+      screenReview.style.display = 'block';
+
+      sessionStatusBadge.textContent = 'Snapshot Captured';
       sessionStatusBadge.className = 'badge badge-opened';
 
     } catch (err) {
-      console.error('[Demo] getUserMedia error:', err);
-      handleCameraError(err);
+      console.error('[Demo] Camera error:', err);
+      stopCameraTracks();
+      handleCameraPermissionError(err);
     }
   }
 
-  // Handle Camera Permission and Device Errors
-  function handleCameraError(err) {
-    stopCameraTracks();
+  function handleCameraPermissionError(err) {
+    screenCapturing.style.display = 'none';
+    screenConsent.style.display = 'block';
 
     let errorMsg = 'An unexpected error occurred while requesting camera access.';
 
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
       errorMsg = '<strong>Camera Permission Denied:</strong> Your browser or operating system blocked camera access.' +
                  '<br><br><strong>How to continue without camera:</strong>' +
-                 '<p style="margin: 0.5rem 0; font-size: 0.85rem;">You can safely watch the educational video above to see how browser permissions work without granting camera access on your device.</p>' +
+                 '<p style="margin: 0.5rem 0; font-size: 0.85rem;">You can return to the video landing page to learn about browser permissions without using the camera on your device.</p>' +
                  '<strong>To enable camera permissions:</strong>' +
                  '<ul style="margin: 0.5rem 0 0.5rem 1.25rem; font-size: 0.825rem;">' +
                  '<li><strong>iPhone / iPad Safari:</strong> Tap the &quot;aA&quot; or website settings icon in the address bar &rarr; Website Settings &rarr; Camera &rarr; Allow.</li>' +
                  '<li><strong>Android Chrome:</strong> Tap the lock or tune icon beside the URL &rarr; Permissions &rarr; Camera &rarr; Allow.</li>' +
-                 '<li><strong>Desktop Browsers:</strong> Click the camera icon or site settings icon on the address bar and select &quot;Allow&quot;.</li>' +
+                 '<li><strong>Desktop Browsers:</strong> Click the camera or lock icon on the address bar and select &quot;Allow&quot;.</li>' +
                  '</ul>';
     } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      errorMsg = '<strong>No Camera Detected:</strong> No video input hardware was found on this device.';
+      errorMsg = '<strong>No Camera Hardware Detected:</strong> No camera was found on this device.';
     } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-      errorMsg = '<strong>Camera In Use:</strong> The camera is currently being used by another application or tab.';
+      errorMsg = '<strong>Camera Busy:</strong> The camera is currently being used by another application or tab.';
     }
 
-    screenCamera.style.display = 'none';
-    screenConsent.style.display = 'block';
     showCameraError(errorMsg, true);
   }
 
   function showCameraError(htmlMessage, showRetry = false) {
+    if (!cameraErrorContainer) return;
     cameraErrorContainer.style.display = 'block';
     cameraErrorContainer.innerHTML = `
       <div class="notice notice-danger">
@@ -716,21 +685,23 @@
     if (showRetry) {
       const retryBtn = document.getElementById('btn-retry-camera');
       if (retryBtn) {
-        retryBtn.addEventListener('click', handleEnableCamera);
+        retryBtn.addEventListener('click', handleConsentStart);
       }
     }
   }
 
   function hideCameraError() {
+    if (!cameraErrorContainer) return;
     cameraErrorContainer.style.display = 'none';
     cameraErrorContainer.innerHTML = '';
   }
 
-  // Stop all active camera tracks
   function stopCameraTracks() {
     if (activeStream) {
       activeStream.getTracks().forEach(track => {
-        track.stop();
+        try {
+          track.stop();
+        } catch (e) {}
       });
       activeStream = null;
     }
@@ -739,82 +710,23 @@
     }
   }
 
-  // Switch between front and rear cameras
-  async function handleSwitchCamera() {
-    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-    await startCameraStream();
-  }
+  // =========================================================================
+  // SUBMISSION TO TELEGRAM (AFTER EXPLICIT CONFIRMATION)
+  // =========================================================================
 
-  // Capture Photo Snapshot
-  function handleCapturePhoto() {
-    if (!activeStream || cameraVideo.videoWidth === 0) {
-      showCameraError('Camera stream is not ready yet. Please wait a moment.');
-      return;
-    }
-
-    const vw = cameraVideo.videoWidth;
-    const vh = cameraVideo.videoHeight;
-    cameraCanvas.width = vw;
-    cameraCanvas.height = vh;
-
-    const ctx = cameraCanvas.getContext('2d');
-
-    // If selfie, mirror canvas horizontally to match preview
-    if (currentFacingMode === 'user') {
-      ctx.translate(vw, 0);
-      ctx.scale(-1, 1);
-    }
-    ctx.drawImage(cameraVideo, 0, 0, vw, vh);
-
-    // Stop active camera hardware immediately after capture
-    stopCameraTracks();
-
-    // Toggle viewport displays
-    cameraVideo.style.display = 'none';
-    cameraCanvas.style.display = 'block';
-    viewfinderReticle.style.display = 'none';
-    viewfinderLiveBadge.style.display = 'none';
-    viewfinderReviewBadge.style.display = 'flex';
-
-    // Toggle controls
-    controlsPreview.style.display = 'none';
-    controlsReview.style.display = 'block';
-
-    // Generate JPEG Blob
-    cameraCanvas.toBlob((blob) => {
-      capturedBlob = blob;
-    }, 'image/jpeg', 0.85);
-  }
-
-  // Retake Photo
-  function handleRetakePhoto() {
-    capturedBlob = null;
-    startCameraStream();
-  }
-
-  // Submit Photo to Telegram Destination
-  async function handleSubmitPhoto() {
+  async function handleConfirmUpload() {
     if (!capturedBlob) {
-      await new Promise(resolve => {
-        cameraCanvas.toBlob((blob) => {
-          capturedBlob = blob;
-          resolve();
-        }, 'image/jpeg', 0.85);
-      });
-    }
-
-    if (!capturedBlob) {
-      showCameraError('No snapshot captured. Please retake photo.', true);
+      showCameraError('No snapshot available to upload. Please retake photo.', true);
       return;
     }
 
     const targetSessionId = await ensureSessionReady();
     const apiUrl = window.APP_CONFIG.getApiBaseUrl();
 
-    btnSubmitPhoto.disabled = true;
+    btnConfirmUpload.disabled = true;
     btnRetakePhoto.disabled = true;
-    btnCancelReview.disabled = true;
-    btnSubmitPhoto.innerHTML = '<span class="spinner"></span> Delivering to Telegram...';
+    btnDiscardPhoto.disabled = true;
+    btnConfirmUpload.innerHTML = '<span class="spinner"></span> Transmitting to Telegram...';
 
     try {
       const formData = new FormData();
@@ -829,57 +741,55 @@
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || `HTTP ${response.status}: Failed to submit photo`);
+        throw new Error(data.error || `HTTP ${response.status}: Delivery failed`);
       }
 
-      // Success
-      stopCameraTracks();
-      showSuccessScreen(data);
+      // Success screen
+      screenReview.style.display = 'none';
+      screenSuccess.style.display = 'block';
+
+      receiptSessionId.textContent = targetSessionId;
+      const now = new Date();
+      receiptTimestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + now.toLocaleDateString();
+
+      sessionStatusBadge.textContent = 'Submitted';
+      sessionStatusBadge.className = 'badge badge-submitted';
 
     } catch (err) {
       console.error('[Demo] Transmission failure:', err);
       showCameraError(`Failed to transmit photo: ${err.message}`, true);
-      btnSubmitPhoto.disabled = false;
+      btnConfirmUpload.disabled = false;
       btnRetakePhoto.disabled = false;
-      btnCancelReview.disabled = false;
-      btnSubmitPhoto.innerHTML = '<span>🚀 Submit Photo to Telegram</span>';
+      btnDiscardPhoto.disabled = false;
+      btnConfirmUpload.innerHTML = '<span>🚀 Confirm & Submit Photo to Telegram</span>';
     }
   }
 
-  // Display Success Screen
-  function showSuccessScreen(data) {
-    screenCamera.style.display = 'none';
-    screenSuccess.style.display = 'block';
-
-    receiptSessionId.textContent = sessionId || 'Public Demo';
-    const now = new Date();
-    receiptTimestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + now.toLocaleDateString();
-
-    sessionStatusBadge.textContent = 'Submitted';
-    sessionStatusBadge.className = 'badge badge-submitted';
-  }
-
-  // Cancel Demonstration
   function handleCancelDemo() {
     stopCameraTracks();
     capturedBlob = null;
-    screenCamera.style.display = 'none';
+    screenConsent.style.display = 'none';
+    screenCapturing.style.display = 'none';
+    screenReview.style.display = 'none';
     screenCancelled.style.display = 'block';
+
     sessionStatusBadge.textContent = 'Cancelled';
     sessionStatusBadge.className = 'badge badge-revoked';
   }
 
-  // Display Invalid / Expired Screen
   function showInvalidScreen(title, message) {
     stopCameraTracks();
     screenConsent.style.display = 'none';
-    screenCamera.style.display = 'none';
+    screenCapturing.style.display = 'none';
+    screenReview.style.display = 'none';
     screenSuccess.style.display = 'none';
     screenCancelled.style.display = 'none';
     screenInvalid.style.display = 'block';
 
-    invalidTitle.textContent = title;
-    invalidMessage.textContent = message;
+    const invTitle = document.getElementById('invalid-title');
+    const invMsg = document.getElementById('invalid-message');
+    if (invTitle) invTitle.textContent = title;
+    if (invMsg) invMsg.textContent = message;
 
     sessionStatusBadge.textContent = 'Invalid / Expired';
     sessionStatusBadge.className = 'badge badge-revoked';

@@ -328,4 +328,50 @@ describe('Photo Submission & Telegram Integration API', () => {
     process.env.TELEGRAM_BOT_TOKEN = origToken;
     process.env.TELEGRAM_CHAT_ID = origChat;
   });
+
+  test('Public Demo Consent Flow — Successfully creates demo session and transmits photo after confirmation (200)', async () => {
+    let capturedCaption = '';
+    telegramService.customFetch = async (url, options) => {
+      // In Node.js native FormData, retrieve the caption field
+      capturedCaption = options.body.get('caption');
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          ok: true,
+          result: { message_id: 99901 }
+        })
+      };
+    };
+
+    // 1. Create ephemeral demo session (same as visitor clicking consent)
+    const demoRes = await request(app)
+      .post('/api/sessions/demo')
+      .send({ label: 'Automated Consent Test' });
+
+    assert.strictEqual(demoRes.status, 201);
+    assert.strictEqual(demoRes.body.success, true);
+    const demoSessionId = demoRes.body.session.id;
+
+    // 2. Transmit captured photo after confirmation
+    const submitRes = await request(app)
+      .post(`/api/sessions/${demoSessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'confirmed-capture.jpg');
+
+    assert.strictEqual(submitRes.status, 200);
+    assert.strictEqual(submitRes.body.success, true);
+    assert.strictEqual(submitRes.body.session.status, 'submitted');
+
+    // 3. Verify consent confirmation notice was included in Telegram caption
+    assert.match(capturedCaption, /Consent: Explicitly captured and submitted/i);
+
+    // 4. Verify single-use enforcement: Attempting a second transmission is rejected (409)
+    const secondSubmitRes = await request(app)
+      .post(`/api/sessions/${demoSessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'second-attempt.jpg');
+
+    assert.strictEqual(secondSubmitRes.status, 409);
+    assert.strictEqual(secondSubmitRes.body.success, false);
+    assert.match(secondSubmitRes.body.error, /already been submitted/i);
+  });
 });
