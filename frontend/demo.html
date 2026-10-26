@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Consent-Based Camera Security Demonstration and Browser Permission Testing">
+  <title>Camera Security Demonstration — Consent & Verification</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">📷</div>
+        <div>
+          <div class="brand-title">Camera Security Demo</div>
+          <div class="brand-subtitle">Consent & Privacy Verification</div>
+        </div>
+      </div>
+      <div id="session-badge-container">
+        <span class="badge badge-created" id="session-status-badge">Verifying Session...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Demonstration Container -->
+  <main class="container">
+    <div class="demo-wrapper">
+      
+      <!-- Session Invalidation Screen (Expired / Revoked / Not Found) -->
+      <section id="screen-invalid" class="card" style="display: none;" aria-live="assertive">
+        <div style="text-align: center; padding: 1.5rem 0.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;" id="invalid-icon">🚫</div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff;" id="invalid-title">Session Unavailable</h2>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0.75rem 0 1.25rem;" id="invalid-message">
+            This demonstration link is no longer valid, has expired, or has been revoked by the administrator.
+          </p>
+          <div class="notice notice-warning" style="text-align: left;">
+            <p>For your security, demonstration links are single-use or time-bounded. Please ask your administrator to issue a fresh demonstration link.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 1: Informed Consent Screen -->
+      <section id="screen-consent" class="card" aria-labelledby="consent-title">
+        <div class="card-header">
+          <div>
+            <h1 id="consent-title" class="card-title">🛡️ Camera Security Demonstration</h1>
+            <div class="card-description">Educational browser permission and media security audit</div>
+          </div>
+        </div>
+
+        <div class="consent-banner">
+          <h2 style="font-size: 1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">
+            How This Demonstration Works
+          </h2>
+          <p style="font-size: 0.875rem; color: #cbd5e1; line-height: 1.6;">
+            This interactive demonstration evaluates how your browser handles camera hardware access. We strictly adhere to privacy-by-design and informed consent principles.
+          </p>
+
+          <ul class="consent-checklist">
+            <li class="consent-item">
+              <span class="consent-check-icon">✓</span>
+              <span><strong>Hardware Permission Prompt:</strong> Your browser will prompt you before any camera access is granted. You can deny it at any time.</span>
+            </li>
+            <li class="consent-item">
+              <span class="consent-check-icon">✓</span>
+              <span><strong>No Secret Transmission:</strong> Opening this page or previewing your camera <em>does not</em> send any images to any server.</span>
+            </li>
+            <li class="consent-item">
+              <span class="consent-check-icon">✓</span>
+              <span><strong>Explicit Review & Submit:</strong> A photo will be transmitted to the administrator's Telegram chat <em>only</em> if you capture a photo, review it, and explicitly click &quot;Submit Photo&quot;.</span>
+            </li>
+            <li class="consent-item">
+              <span class="consent-check-icon">✓</span>
+              <span><strong>Complete Track Teardown:</strong> All camera streams and hardware lights turn off immediately upon capture, cancellation, or page exit.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="notice notice-info">
+          <div>
+            <strong>Session Reference:</strong> <span class="code-pill" id="display-session-id">—</span>
+          </div>
+        </div>
+
+        <div id="consent-alert" style="display: none;"></div>
+
+        <div class="action-controls" style="margin-top: 1.25rem;">
+          <button type="button" id="btn-agree-start" class="btn btn-primary" style="width: 100%;">
+            <span>📷 I Understand — Start Camera Demonstration</span>
+          </button>
+          <button type="button" id="btn-consent-cancel" class="btn btn-secondary" style="width: 100%;">
+            <span>Cancel Demonstration</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 2 & 3: Camera Live Viewfinder & Snapshot Review Screen -->
+      <section id="screen-camera" class="card" style="display: none;" aria-labelledby="viewfinder-title">
+        <div class="card-header">
+          <div>
+            <h2 id="viewfinder-title" class="card-title">📸 Camera Viewfinder</h2>
+            <div class="card-description" id="viewfinder-sub">Live local preview. No data is sent until you submit.</div>
+          </div>
+          <div>
+            <span class="code-pill" id="viewfinder-session-ref">—</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Camera Error Notice -->
+        <div id="camera-error-container" style="display: none; margin-bottom: 1rem;"></div>
+
+        <!-- Camera Viewport Box -->
+        <div class="camera-container" id="camera-container" role="region" aria-label="Camera Live Preview">
+          <!-- Live Video Stream -->
+          <video id="camera-video" class="camera-video mirrored" autoplay playsinline muted></video>
+          
+          <!-- Frozen Canvas Review -->
+          <canvas id="camera-canvas" class="camera-canvas-preview" style="display: none;"></canvas>
+
+          <!-- Viewfinder HUD Overlays (Shown during live preview) -->
+          <div class="viewfinder-reticle" id="viewfinder-reticle">
+            <div class="reticle-corner tl"></div>
+            <div class="reticle-corner tr"></div>
+            <div class="reticle-corner bl"></div>
+            <div class="reticle-corner br"></div>
+            <div class="reticle-center"></div>
+          </div>
+
+          <!-- Live Indicator Badge -->
+          <div class="viewfinder-badge" id="viewfinder-live-badge">
+            <span class="live-pulse"></span>
+            <span>LIVE PREVIEW</span>
+          </div>
+
+          <!-- Review Indicator Badge (Shown after capture) -->
+          <div class="review-tag" id="viewfinder-review-badge" style="display: none;">
+            <span>📸 Captured — Review Before Sending</span>
+          </div>
+
+          <!-- Camera Switch Tool (Front / Back) -->
+          <div class="viewfinder-tools" id="viewfinder-tools">
+            <button type="button" id="btn-switch-camera" class="btn btn-secondary btn-sm" title="Switch between front and back camera" style="display: none;">
+              <span>🔄 Flip Camera</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls: Live Preview Mode -->
+        <div id="controls-preview" class="action-controls">
+          <button type="button" id="btn-capture" class="btn btn-primary" style="width: 100%;">
+            <span>⚪ Capture Photo</span>
+          </button>
+          <div class="controls-row">
+            <button type="button" id="btn-cancel-demo" class="btn btn-secondary">
+              <span>Exit Demo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Controls: Review Mode (After Capture) -->
+        <div id="controls-review" class="action-controls" style="display: none;">
+          <div class="notice notice-info" style="margin-bottom: 0.75rem;">
+            <p>Does this look acceptable? Transmitting this photo will send it directly to the administrator's Telegram chat.</p>
+          </div>
+          <button type="button" id="btn-submit-photo" class="btn btn-success" style="width: 100%;">
+            <span>🚀 Submit Photo to Telegram</span>
+          </button>
+          <div class="controls-row">
+            <button type="button" id="btn-retake-photo" class="btn btn-secondary">
+              <span>🔄 Retake Photo</span>
+            </button>
+            <button type="button" id="btn-cancel-review" class="btn btn-danger">
+              <span>Cancel & Discard</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 4: Submission Confirmation / Success Screen -->
+      <section id="screen-success" class="card receipt-card" style="display: none;" aria-live="polite">
+        <div class="receipt-icon">✓</div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
+          Demonstration Complete
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+          Your photo has been securely delivered to the administrator's Telegram chat.
+        </p>
+
+        <div class="notice notice-success" style="text-align: left; margin-bottom: 1.5rem;">
+          <div>
+            <strong>Audit Confirmation Details:</strong>
+            <ul style="list-style: none; margin-top: 0.5rem; font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <li>&bull; <strong>Session Reference:</strong> <span id="receipt-session-id" class="code-pill">—</span></li>
+              <li>&bull; <strong>Delivered At:</strong> <span id="receipt-timestamp" style="color: var(--text-main);">—</span></li>
+              <li>&bull; <strong>Camera Hardware Status:</strong> <span style="color: #34d399;">All tracks stopped & disconnected</span></li>
+              <li>&bull; <strong>Server Storage:</strong> <span style="color: #93c5fd;">No permanent server copy stored</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1.5rem;">
+          You can safely close this browser window or tab. The demonstration link has now been completed and invalidated.
+        </p>
+
+        <button type="button" id="btn-finish-exit" class="btn btn-secondary" style="width: 100%;">
+          <span>Close Demonstration</span>
+        </button>
+      </section>
+
+      <!-- Step 5: Cancelled Screen -->
+      <section id="screen-cancelled" class="card receipt-card" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔒</div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
+          Demonstration Cancelled
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
+          Camera hardware access was stopped immediately. No photos or data were captured or transmitted.
+        </p>
+        <button type="button" id="btn-restart-demo" class="btn btn-primary" style="width: 100%;">
+          <span>Restart Demonstration</span>
+        </button>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>Camera Security Demonstration Platform &bull; Standard Web MediaDevices API &bull; Privacy by Design</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="./config.js"></script>
+  <script src="./demo.js"></script>
+</body>
+</html>

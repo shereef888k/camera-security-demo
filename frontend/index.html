@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin Security Console for Consent-Based Camera Demonstration and Session Management">
+  <title>Admin Dashboard — Camera Security Demonstration</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <a href="./index.html" class="brand">
+        <div class="brand-icon">🛡️</div>
+        <div>
+          <div class="brand-title">Camera Security Console</div>
+          <div class="brand-subtitle">Demonstration Platform</div>
+        </div>
+      </a>
+      <div class="header-actions">
+        <div id="backend-status" class="status-indicator">
+          <span class="indicator-dot checking" id="status-dot"></span>
+          <span id="status-text">Checking API...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+    <!-- System Notice / Educational Disclaimer -->
+    <div class="notice notice-info">
+      <div>
+        <strong>Consent-Based Demonstration Protocol</strong>
+        <p>This platform issues ephemeral demonstration sessions to evaluate mobile and desktop browser camera permissions. Photo transmission occurs <em>only</em> when a visitor knowingly clicks &quot;Submit Photo&quot;. All sessions expire automatically or upon admin revocation.</p>
+      </div>
+    </div>
+
+    <!-- Alert Banner Container for Dynamic Notifications -->
+    <div id="alert-container"></div>
+
+    <!-- Top Grid: Session Generator & Admin Configuration -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+      <!-- Generate Session Card -->
+      <section class="card" aria-labelledby="gen-session-heading">
+        <div class="card-header">
+          <div>
+            <h1 id="gen-session-heading" class="card-title">🔗 Create Demo Link</h1>
+            <div class="card-description">Issue a time-bounded, single-use demonstration session link.</div>
+          </div>
+        </div>
+
+        <form id="create-session-form">
+          <div class="form-group">
+            <label for="session-label" class="form-label">Session Label / Device Note (Optional)</label>
+            <input type="text" id="session-label" class="form-input" placeholder="e.g. Audit Safari on iOS 18" maxlength="50">
+          </div>
+
+          <div class="form-group">
+            <label for="session-duration" class="form-label">Session Lifetime</label>
+            <select id="session-duration" class="form-select">
+              <option value="15">15 Minutes (Recommended for live demos)</option>
+              <option value="30" selected>30 Minutes</option>
+              <option value="60">1 Hour</option>
+              <option value="360">6 Hours</option>
+              <option value="1440">24 Hours</option>
+            </select>
+          </div>
+
+          <button type="submit" id="btn-create-session" class="btn btn-primary" style="width: 100%;">
+            <span>Generate Secure Link</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Admin Credentials & API Settings Card -->
+      <section class="card" aria-labelledby="settings-heading">
+        <div class="card-header">
+          <div>
+            <h2 id="settings-heading" class="card-title">⚙️ Backend & Credentials</h2>
+            <div class="card-description">Authentication key for privileged administrative endpoints.</div>
+          </div>
+        </div>
+
+        <form id="admin-settings-form">
+          <div class="form-group">
+            <label for="admin-api-key" class="form-label">Administrator API Key (<span id="key-status-label">Not Set</span>)</label>
+            <input type="password" id="admin-api-key" class="form-input" placeholder="Enter ADMIN_API_KEY from backend .env" autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label for="backend-url-override" class="form-label">Backend Base URL</label>
+            <input type="url" id="backend-url-override" class="form-input" placeholder="http://localhost:4000">
+          </div>
+
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-secondary" style="flex: 1;">Save Settings</button>
+            <button type="button" id="btn-test-connection" class="btn btn-secondary btn-sm" title="Ping health endpoint">Test Ping</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Active Sessions Monitor Section -->
+    <section class="card" aria-labelledby="sessions-table-heading" style="margin-top: 1.5rem;">
+      <div class="card-header">
+        <div>
+          <h2 id="sessions-table-heading" class="card-title">📊 Demonstration Sessions</h2>
+          <div class="card-description">Real-time status of issued links, timestamps, and access states.</div>
+        </div>
+        <button id="btn-refresh-sessions" class="btn btn-secondary btn-sm" title="Reload active sessions">
+          <span>🔄 Refresh</span>
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table" id="sessions-table">
+          <thead>
+            <tr>
+              <th scope="col">Session Reference</th>
+              <th scope="col">Label</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+              <th scope="col">Expires</th>
+              <th scope="col" style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sessions-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                Loading demonstration sessions...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for newly created link -->
+  <div id="link-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title" class="modal-title">🎉 Link Generated</h3>
+        <button type="button" class="modal-close" id="modal-close-btn" aria-label="Close modal">&times;</button>
+      </div>
+      <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        Send this unique demonstration link to the testing device. The visitor will be asked for explicit consent before any camera preview begins.
+      </p>
+
+      <div class="copy-box">
+        <input type="text" id="modal-link-input" class="copy-input" readonly>
+      </div>
+
+      <div class="controls-row" style="margin-top: 1.25rem;">
+        <button type="button" id="modal-copy-btn" class="btn btn-primary">
+          <span>📋 Copy Link</span>
+        </button>
+        <a id="modal-open-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          <span>↗️ Open in New Tab</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>Camera Security Demonstration Platform &bull; Built with standard Web MediaDevices API and Telegram Bot API &bull; Strict Consent Architecture</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="./config.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

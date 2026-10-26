@@ -1,0 +1,214 @@
+const { test, describe, before, beforeEach, after } = require('node:test');
+const assert = require('node:assert');
+const request = require('supertest');
+
+process.env.NODE_ENV = 'test';
+process.env.ADMIN_API_KEY = 'test_super_secure_admin_key_987654321';
+process.env.TELEGRAM_BOT_TOKEN = '123456789:MockTelegramTokenForAutomatedTesting';
+process.env.TELEGRAM_CHAT_ID = '987654321';
+process.env.DATABASE_PATH = ':memory:';
+
+const app = require('../server');
+const db = require('../services/db');
+const telegramService = require('../services/telegram');
+
+// Minimal valid 1x1 JPEG buffer for testing
+const TINY_JPEG_BUFFER = Buffer.from([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+  0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43,
+  0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x07, 0x07, 0x09,
+  0x09, 0x08, 0x0a, 0x0c, 0x14, 0x0d, 0x0c, 0x0b, 0x0b, 0x0c, 0x19, 0x12,
+  0x13, 0x0f, 0x14, 0x1d, 0x1a, 0x1f, 0x1e, 0x1d, 0x1a, 0x1c, 0x1c, 0x20,
+  0x24, 0x2e, 0x27, 0x20, 0x22, 0x2c, 0x23, 0x1c, 0x1c, 0x28, 0x37, 0x29,
+  0x2c, 0x30, 0x31, 0x34, 0x34, 0x34, 0x1f, 0x27, 0x39, 0x3d, 0x38, 0x32,
+  0x3c, 0x2e, 0x33, 0x34, 0x32, 0xff, 0xc0, 0x00, 0x0b, 0x08, 0x00, 0x01,
+  0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x09, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00,
+  0x3f, 0x00, 0xbf, 0x00, 0xff, 0xd9
+]);
+
+describe('Photo Submission & Telegram Integration API', () => {
+  before(() => {
+    db.initDatabase(':memory:');
+  });
+
+  after(() => {
+    db.closeDatabase();
+  });
+
+  test('POST /api/sessions/:id/photo — Successfully delivers photo via Mocked Telegram API (200)', async () => {
+    // 1. Mock Telegram API fetch with success
+    telegramService.customFetch = async (url, options) => {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          ok: true,
+          result: { message_id: 12345 }
+        })
+      };
+    };
+
+    // 2. Create active session
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30, label: 'Camera Test 1' });
+
+    const sessionId = createRes.body.session.id;
+
+    // 3. Submit photo
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'test-capture.jpg');
+
+    assert.strictEqual(photoRes.status, 200);
+    assert.strictEqual(photoRes.body.success, true);
+    assert.strictEqual(photoRes.body.session.status, 'submitted');
+
+    // 4. Verify DB status updated to 'submitted'
+    const session = db.getSessionById(sessionId);
+    assert.strictEqual(session.status, 'submitted');
+    assert.ok(session.submittedAt);
+  });
+
+  test('POST /api/sessions/:id/photo — Does NOT mark session submitted if Telegram API fails (502)', async () => {
+    // Mock Telegram API failure
+    telegramService.customFetch = async (url, options) => {
+      return {
+        ok: false,
+        status: 502,
+        json: async () => ({
+          ok: false,
+          description: 'Bad Gateway: Telegram servers temporarily unreachable'
+        })
+      };
+    };
+
+    // Create session
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    // Submit photo
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'test-capture.jpg');
+
+    assert.strictEqual(photoRes.status, 502);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /Telegram delivery failed/i);
+
+    // Verify DB was NOT updated
+    const session = db.getSessionById(sessionId);
+    assert.strictEqual(session.status, 'created');
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects submission if session already submitted (409 Conflict)', async () => {
+    // Mock successful telegram
+    telegramService.customFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, result: { message_id: 999 } })
+    });
+
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    // First submission
+    const firstRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'first.jpg');
+    assert.strictEqual(firstRes.status, 200);
+
+    // Second submission attempt
+    const secondRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'second.jpg');
+
+    assert.strictEqual(secondRes.status, 409);
+    assert.strictEqual(secondRes.body.success, false);
+    assert.match(secondRes.body.error, /already been submitted/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects submission to a revoked session (403)', async () => {
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    // Revoke session
+    await request(app)
+      .post(`/api/sessions/${sessionId}/revoke`)
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY);
+
+    // Attempt submission
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'attempt.jpg');
+
+    assert.strictEqual(photoRes.status, 403);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /revoked/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects submission to an expired session (410)', async () => {
+    // Manually create expired session in DB
+    const expiredId = 'expired0123456789abcdef01234567';
+    db.createSession({
+      id: expiredId,
+      expiresAt: new Date(Date.now() - 60000).toISOString() // 1 minute in the past
+    });
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${expiredId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'expired.jpg');
+
+    assert.strictEqual(photoRes.status, 410);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /expired/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects non-image MIME types (400)', async () => {
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', Buffer.from('hello plain text'), 'document.txt');
+
+    assert.strictEqual(photoRes.status, 400);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /Unsupported image format/i);
+  });
+
+  test('POST /api/sessions/:id/photo — Rejects request without a photo file (400)', async () => {
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`);
+
+    assert.strictEqual(photoRes.status, 400);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /Missing photo file/i);
+  });
+});
