@@ -16,12 +16,16 @@
   // Video Player Simulation State (for index.html)
   let isVideoPlaying = false;
   let videoCurrentSeconds = 0;
-  const videoTotalSeconds = 258; // 04:18
+  const videoTotalSeconds = 222; // 03:42
   let videoAnimFrameId = null;
   let isVideoMuted = false;
-  let likeCount = 1842;
+  let likeCount = 18420;
   let hasLiked = false;
   let canvasCtx = null;
+
+  // Cinematic Starfield Particles for Canvas
+  const NUM_STARS = 140;
+  let stars = [];
 
   // =========================================================================
   // DOM ELEMENT SELECTION
@@ -89,12 +93,12 @@
   const btnTestAgain = document.getElementById('btn-test-again');
   const btnRestartSimulation = document.getElementById('btn-restart-simulation');
 
-  // Telemetry helper: Records non-sensitive awareness events
+  // Telemetry helper: Records non-sensitive awareness events (only when session ID is present)
   async function recordAwarenessEvent(eventType, metadata = null) {
+    if (!sessionId) return; // Do not auto-create ephemeral sessions for general landing page visitors
     try {
-      const activeSessionId = await ensureSessionReady();
       const apiUrl = window.APP_CONFIG.getApiBaseUrl();
-      await fetch(`${apiUrl}/api/sessions/${activeSessionId}/events`, {
+      await fetch(`${apiUrl}/api/sessions/${sessionId}/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventType, metadata })
@@ -175,14 +179,19 @@
       });
     }
     if (adSponsorLink) {
-      adSponsorLink.addEventListener('click', () => {
+      adSponsorLink.addEventListener('click', (e) => {
+        e.preventDefault();
         recordAwarenessEvent('demo_button_clicked', { source: 'ad_banner_cta' });
+        showToast('🎧 AuraWave™ Pro: 40mm planar graphene drivers, 48hr battery, lossless spatial audio.');
       });
     }
     if (sidebarDemoLink) {
       sidebarDemoLink.addEventListener('click', () => {
         recordAwarenessEvent('demo_button_clicked', { source: 'sidebar_demo_card' });
       });
+    }
+    if (interactiveVideoCanvas) {
+      interactiveVideoCanvas.addEventListener('click', toggleVideoPlayPause);
     }
     if (btnPlayerPlay) {
       btnPlayerPlay.addEventListener('click', toggleVideoPlayPause);
@@ -196,6 +205,17 @@
     if (videoScrubber) {
       videoScrubber.addEventListener('click', handleSeek);
     }
+
+    // Mini cards interaction
+    const miniCards = document.querySelectorAll('.video-card-mini:not([href])');
+    miniCards.forEach((card) => {
+      card.addEventListener('click', () => {
+        const title = card.querySelector('.mini-title')?.textContent || 'Related Video';
+        showToast(`Loading: ${title}`);
+        videoPlayerWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        startVideoPlayback();
+      });
+    });
 
     // Like button
     if (btnLikeVideo && likeCountSpan) {
@@ -290,108 +310,243 @@
     videoTimecode.textContent = `${formatTime(videoCurrentSeconds)} / ${formatTime(videoTotalSeconds)}`;
   }
 
-  function renderEducationalVideoFrame(timestamp) {
+  function initStarfield(w, h) {
+    stars = [];
+    for (let i = 0; i < NUM_STARS; i++) {
+      stars.push({
+        x: (Math.random() - 0.5) * w * 2.5,
+        y: (Math.random() - 0.5) * h * 2.5,
+        z: Math.random() * 1000 + 1,
+        color: ['#38bdf8', '#818cf8', '#c084fc', '#ffffff', '#34d399'][Math.floor(Math.random() * 5)]
+      });
+    }
+  }
+
+  function renderCinematicVideoFrame(timestamp) {
     if (!canvasCtx || !interactiveVideoCanvas) return;
     const w = interactiveVideoCanvas.width;
     const h = interactiveVideoCanvas.height;
     const scale = w / 800;
 
-    canvasCtx.fillStyle = '#070b14';
+    if (stars.length === 0) {
+      initStarfield(w, h);
+    }
+
+    // 1. Deep space background
+    canvasCtx.fillStyle = '#030712';
     canvasCtx.fillRect(0, 0, w, h);
 
-    // Dynamic grid
-    canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-    canvasCtx.lineWidth = 1;
-    const gridSize = 40 * scale;
-    const offset = (timestamp * 0.02) % gridSize;
-    for (let x = -offset; x < w; x += gridSize) {
-      canvasCtx.beginPath();
-      canvasCtx.moveTo(x, 0);
-      canvasCtx.lineTo(x, h);
-      canvasCtx.stroke();
-    }
-    for (let y = 0; y < h; y += gridSize) {
-      canvasCtx.beginPath();
-      canvasCtx.moveTo(0, y);
-      canvasCtx.lineTo(w, y);
-      canvasCtx.stroke();
-    }
+    // 2. Cosmic Nebulae (Swirling atmospheric color fields)
+    const neb1X = w * 0.35 + Math.sin(timestamp * 0.0004) * 50 * scale;
+    const neb1Y = h * 0.45 + Math.cos(timestamp * 0.0005) * 40 * scale;
+    const nebGrad1 = canvasCtx.createRadialGradient(neb1X, neb1Y, 15 * scale, neb1X, neb1Y, 320 * scale);
+    nebGrad1.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+    nebGrad1.addColorStop(0.5, 'rgba(139, 92, 246, 0.15)');
+    nebGrad1.addColorStop(1, 'transparent');
+    canvasCtx.fillStyle = nebGrad1;
+    canvasCtx.fillRect(0, 0, w, h);
 
-    const sec = videoCurrentSeconds;
-    let stepTitle = '1. BROWSER HARDWARE SANDBOX ISOLATION';
-    let stepDesc = 'Untrusted Web Page <--> Security Sandbox <--> Device Hardware';
-    let diagramColor = '#38bdf8';
+    const neb2X = w * 0.65 + Math.cos(timestamp * 0.0003) * 60 * scale;
+    const neb2Y = h * 0.52 + Math.sin(timestamp * 0.0004) * 45 * scale;
+    const nebGrad2 = canvasCtx.createRadialGradient(neb2X, neb2Y, 20 * scale, neb2X, neb2Y, 350 * scale);
+    nebGrad2.addColorStop(0, 'rgba(6, 182, 212, 0.32)');
+    nebGrad2.addColorStop(0.6, 'rgba(14, 165, 233, 0.1)');
+    nebGrad2.addColorStop(1, 'transparent');
+    canvasCtx.fillStyle = nebGrad2;
+    canvasCtx.fillRect(0, 0, w, h);
 
-    if (sec > 65 && sec <= 130) {
-      stepTitle = '2. USER GESTURE PERMISSION REQUIREMENT';
-      stepDesc = 'Camera access is completely BLOCKED without an explicit user gesture';
-      diagramColor = '#f59e0b';
-    } else if (sec > 130 && sec <= 195) {
-      stepTitle = '3. OPERATING SYSTEM HARDWARE INDICATOR';
-      stepDesc = 'Hardware light illuminates ONLY while sensor tracks are actively running';
-      diagramColor = '#10b981';
-    } else if (sec > 195) {
-      stepTitle = '4. CONFIRMED TELEGRAM TRANSMISSION';
-      stepDesc = 'Demonstration photos leave the device ONLY after explicit user agreement';
-      diagramColor = '#818cf8';
-    }
+    // 3. Central Celestial Body / Exoplanetary Horizon
+    const planetX = w * 0.5;
+    const planetY = h * 0.46;
+    const planetRadius = 75 * scale;
 
-    // Top Header
-    canvasCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    canvasCtx.fillRect(20 * scale, 20 * scale, w - 40 * scale, 55 * scale);
-    canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    canvasCtx.strokeRect(20 * scale, 20 * scale, w - 40 * scale, 55 * scale);
-
-    canvasCtx.fillStyle = diagramColor;
-    canvasCtx.font = `bold ${16 * scale}px sans-serif`;
-    canvasCtx.fillText(`🛡️ ${stepTitle}`, 35 * scale, 45 * scale);
-
-    canvasCtx.fillStyle = '#94a3b8';
-    canvasCtx.font = `${12 * scale}px sans-serif`;
-    canvasCtx.fillText(stepDesc, 35 * scale, 65 * scale);
-
-    // Center Nodes
-    const centerX = w / 2;
-    const centerY = h / 2 + 10 * scale;
-
-    drawVisualNode(centerX - 200 * scale, centerY, '🌐 Browser Tab', 'Sandboxed Page', '#38bdf8', scale);
-
-    const packetProgress = (timestamp * 0.001) % 1;
-    const packetX = (centerX - 200 * scale) + packetProgress * (400 * scale);
-    canvasCtx.fillStyle = diagramColor;
+    // Atmospheric rim glow
+    const glowGrad = canvasCtx.createRadialGradient(planetX, planetY, planetRadius * 0.9, planetX, planetY, planetRadius * 1.6);
+    glowGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+    glowGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.18)');
+    glowGrad.addColorStop(1, 'transparent');
+    canvasCtx.fillStyle = glowGrad;
     canvasCtx.beginPath();
-    canvasCtx.arc(packetX, centerY, 6 * scale, 0, Math.PI * 2);
+    canvasCtx.arc(planetX, planetY, planetRadius * 1.6, 0, Math.PI * 2);
     canvasCtx.fill();
 
-    const isGateOpen = sec > 65;
-    drawVisualNode(centerX, centerY, isGateOpen ? '🔓 Consent Gate' : '🔒 Permission Gate', isGateOpen ? 'User Clicked' : 'Waiting for Click', isGateOpen ? '#34d399' : '#ef4444', scale);
-    drawVisualNode(centerX + 200 * scale, centerY, '📷 Web Camera', 'Hardware Sensor', '#a855f7', scale);
-
-    canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    canvasCtx.font = `${11 * scale}px sans-serif`;
-    canvasCtx.fillText('StreamSafe Media • Educational Digital Privacy Architecture', 30 * scale, h - 35 * scale);
-  }
-
-  function drawVisualNode(x, y, title, subtitle, color, scale) {
-    const boxW = 130 * scale;
-    const boxH = 65 * scale;
-    canvasCtx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    canvasCtx.strokeStyle = color;
-    canvasCtx.lineWidth = 2;
+    // Planet Sphere with terminator shadow
+    const planetGrad = canvasCtx.createRadialGradient(
+      planetX - planetRadius * 0.35,
+      planetY - planetRadius * 0.35,
+      planetRadius * 0.1,
+      planetX,
+      planetY,
+      planetRadius
+    );
+    planetGrad.addColorStop(0, '#38bdf8');
+    planetGrad.addColorStop(0.4, '#1e3a8a');
+    planetGrad.addColorStop(0.8, '#0f172a');
+    planetGrad.addColorStop(1, '#020617');
+    canvasCtx.fillStyle = planetGrad;
     canvasCtx.beginPath();
-    canvasCtx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 8 * scale);
+    canvasCtx.arc(planetX, planetY, planetRadius, 0, Math.PI * 2);
+    canvasCtx.fill();
+
+    // Orbital Rings with tilt
+    canvasCtx.save();
+    canvasCtx.translate(planetX, planetY);
+    canvasCtx.rotate(-22 * Math.PI / 180);
+    canvasCtx.beginPath();
+    canvasCtx.ellipse(0, 0, planetRadius * 2.2, planetRadius * 0.5, 0, 0, Math.PI * 2);
+    canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+    canvasCtx.lineWidth = 3 * scale;
+    canvasCtx.stroke();
+
+    canvasCtx.beginPath();
+    canvasCtx.ellipse(0, 0, planetRadius * 2.5, planetRadius * 0.58, 0, 0, Math.PI * 2);
+    canvasCtx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
+    canvasCtx.lineWidth = 1.5 * scale;
+    canvasCtx.stroke();
+    canvasCtx.restore();
+
+    // 4. Warp starfield streaming outward
+    const speed = isVideoPlaying ? 5 : 0.8;
+    const fov = 400 * scale;
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+      s.z -= speed;
+      if (s.z <= 10) {
+        s.z = 1000;
+        s.x = (Math.random() - 0.5) * w * 2.5;
+        s.y = (Math.random() - 0.5) * h * 2.5;
+      }
+
+      const k = fov / s.z;
+      const px = s.x * k + w / 2;
+      const py = s.y * k + h / 2;
+
+      if (px >= 0 && px < w && py >= 0 && py < h) {
+        const starSize = Math.max(0.8, (1 - s.z / 1000) * 3.5 * scale);
+        canvasCtx.fillStyle = s.color;
+        canvasCtx.beginPath();
+        canvasCtx.arc(px, py, starSize, 0, Math.PI * 2);
+        canvasCtx.fill();
+
+        // Warp streak tail
+        if (isVideoPlaying && s.z < 850) {
+          const prevK = fov / (s.z + speed * 3);
+          const prevX = s.x * prevK + w / 2;
+          const prevY = s.y * prevK + h / 2;
+          canvasCtx.strokeStyle = s.color;
+          canvasCtx.globalAlpha = Math.max(0.1, 1 - s.z / 1000);
+          canvasCtx.lineWidth = starSize * 0.8;
+          canvasCtx.beginPath();
+          canvasCtx.moveTo(px, py);
+          canvasCtx.lineTo(prevX, prevY);
+          canvasCtx.stroke();
+          canvasCtx.globalAlpha = 1.0;
+        }
+      }
+    }
+
+    // 5. Dynamic Audio Spectrum Visualizer at bottom
+    const barCount = 38;
+    const barW = 7 * scale;
+    const gap = 4 * scale;
+    const spectrumW = barCount * (barW + gap);
+    const startX = (w - spectrumW) / 2;
+    const baseY = h - 35 * scale;
+
+    for (let i = 0; i < barCount; i++) {
+      let amp = 0;
+      if (isVideoPlaying && !isVideoMuted) {
+        const wave1 = Math.sin(timestamp * 0.005 + i * 0.32);
+        const wave2 = Math.cos(timestamp * 0.002 + i * 0.18);
+        const wave3 = Math.sin(timestamp * 0.008 + i * 0.5);
+        amp = Math.abs(wave1 * 0.5 + wave2 * 0.3 + wave3 * 0.2);
+      }
+      const barH = isVideoPlaying ? (8 + amp * 38) * scale : 4 * scale;
+
+      const barGrad = canvasCtx.createLinearGradient(0, baseY, 0, baseY - barH);
+      barGrad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+      barGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.85)');
+      barGrad.addColorStop(1, '#c084fc');
+
+      canvasCtx.fillStyle = barGrad;
+      canvasCtx.fillRect(startX + i * (barW + gap), baseY - barH, barW, barH);
+    }
+
+    // 6. Cinema Telemetry & Chapter Title Cards
+    const sec = videoCurrentSeconds;
+    let actTitle = 'ACT I: THE ORION EXPEDITION';
+    let actDesc = 'Scout vessel Aura-IX entering uncharted sector coordinates';
+
+    if (sec > 48 && sec <= 105) {
+      actTitle = 'ACT II: VOLUMETRIC NEBULA CLOUD';
+      actDesc = 'Ionized gas concentration: 94.2% • Volumetric particle density 4K';
+    } else if (sec > 105 && sec <= 165) {
+      actTitle = 'ACT III: ANCIENT EXOPLANETARY ANCHOR';
+      actDesc = 'Planetary scan initiated • Quantum beacon alignment synchronized';
+    } else if (sec > 165 && sec <= 222) {
+      actTitle = 'ACT IV: LIGHTSPEED JUMP PREPARATION';
+      actDesc = 'Warp core charging: 100% • Departure vector locked to Outer Rim';
+    }
+
+    // Top Cinematic HUD Banner
+    canvasCtx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    canvasCtx.fillRect(15 * scale, 15 * scale, w - 30 * scale, 38 * scale);
+    canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    canvasCtx.strokeRect(15 * scale, 15 * scale, w - 30 * scale, 38 * scale);
+
+    canvasCtx.fillStyle = '#38bdf8';
+    canvasCtx.font = `bold ${12 * scale}px sans-serif`;
+    canvasCtx.fillText('🎬 NOVASTREAM CINEMA', 25 * scale, 39 * scale);
+
+    canvasCtx.fillStyle = '#4ade80';
+    canvasCtx.font = `bold ${10 * scale}px sans-serif`;
+    canvasCtx.fillText('4K ULTRA HD 60FPS', 170 * scale, 39 * scale);
+
+    canvasCtx.fillStyle = '#94a3b8';
+    canvasCtx.font = `${10 * scale}px monospace`;
+    canvasCtx.textAlign = 'right';
+    canvasCtx.fillText('HDR10+ • DOLBY ATMOS 7.1.4 • MASTER CUT', w - 25 * scale, 39 * scale);
+    canvasCtx.textAlign = 'left';
+
+    // Lower Subtitle / Act Banner
+    const bannerW = Math.min(w * 0.8, 540 * scale);
+    const bannerH = 46 * scale;
+    const bannerX = (w - bannerW) / 2;
+    const bannerY = h - 90 * scale;
+
+    canvasCtx.fillStyle = 'rgba(10, 15, 29, 0.85)';
+    canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+    canvasCtx.lineWidth = 1;
+    canvasCtx.beginPath();
+    canvasCtx.roundRect(bannerX, bannerY, bannerW, bannerH, 8 * scale);
     canvasCtx.fill();
     canvasCtx.stroke();
 
-    canvasCtx.fillStyle = '#ffffff';
-    canvasCtx.font = `bold ${12 * scale}px sans-serif`;
+    canvasCtx.fillStyle = '#f8fafc';
+    canvasCtx.font = `bold ${13 * scale}px sans-serif`;
     canvasCtx.textAlign = 'center';
-    canvasCtx.fillText(title, x, y - 6 * scale);
+    canvasCtx.fillText(actTitle, w / 2, bannerY + 20 * scale);
 
     canvasCtx.fillStyle = '#94a3b8';
     canvasCtx.font = `${10 * scale}px sans-serif`;
-    canvasCtx.fillText(subtitle, x, y + 14 * scale);
+    canvasCtx.fillText(actDesc, w / 2, bannerY + 36 * scale);
     canvasCtx.textAlign = 'left';
+
+    // 7. Paused Screen Overlay
+    if (!isVideoPlaying) {
+      canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.65)';
+      canvasCtx.fillRect(0, 0, w, h);
+
+      canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      canvasCtx.font = `bold ${18 * scale}px sans-serif`;
+      canvasCtx.textAlign = 'center';
+      canvasCtx.fillText('⏸ PLAYBACK PAUSED', w / 2, h / 2 - 10 * scale);
+
+      canvasCtx.fillStyle = '#38bdf8';
+      canvasCtx.font = `${12 * scale}px sans-serif`;
+      canvasCtx.fillText('Click player to resume feature', w / 2, h / 2 + 16 * scale);
+      canvasCtx.textAlign = 'left';
+    }
   }
 
   let lastTimestamp = 0;
@@ -408,7 +563,7 @@
       updateVideoTimecodeUI();
     }
     lastTimestamp = now || performance.now();
-    renderEducationalVideoFrame(lastTimestamp);
+    renderCinematicVideoFrame(lastTimestamp);
     if (isVideoPlaying) {
       videoAnimFrameId = requestAnimationFrame(runVideoLoop);
     }

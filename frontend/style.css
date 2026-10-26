@@ -789,6 +789,53 @@ body {
   .camera-container {
     aspect-ratio: 3 / 4; /* Mobile portrait friendly */
   }
+
+  .video-poster {
+    padding: 0.85rem;
+  }
+
+  .play-button-glow {
+    width: 60px;
+    height: 60px;
+    font-size: 1.4rem;
+  }
+
+  .poster-main-title {
+    font-size: 1rem;
+    line-height: 1.25;
+  }
+
+  .poster-title-overlay {
+    max-width: 85%;
+  }
+
+  .video-primary-title {
+    font-size: 1.15rem;
+  }
+
+  .channel-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .channel-cta-buttons {
+    width: 100%;
+  }
+
+  .btn-watch-demo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ad-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ad-cta-btn {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* ==========================================================================
@@ -867,8 +914,9 @@ body {
 .video-poster {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 60% 40%, rgba(37, 99, 235, 0.25), transparent 70%),
-              linear-gradient(135deg, #090d16 0%, #0f172a 50%, #081120 100%);
+  background: radial-gradient(circle at 75% 30%, rgba(99, 102, 241, 0.4), transparent 60%),
+              radial-gradient(circle at 25% 75%, rgba(6, 182, 212, 0.35), transparent 55%),
+              linear-gradient(135deg, #050814 0%, #0c1222 50%, #030712 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
