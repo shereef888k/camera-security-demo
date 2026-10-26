@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: camera-security-demo-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    plan: starter # Starter plan or free plan (persistent disks require paid plan on Render; on free tier disk can be omitted)
+    disk:
+      name: sessions-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /var/data/sessions.db
+      - key: ADMIN_API_KEY
+        generateValue: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
