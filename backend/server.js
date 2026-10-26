@@ -14,12 +14,18 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// 1. HTTP Security Headers
+// 1. Configure Express reverse proxy trust
+// Render deploys services behind a single reverse proxy layer. Trusting 1 hop enables
+// express-rate-limit and req.ip to correctly read the client IP from X-Forwarded-For
+// without throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR or blindly trusting arbitrary hops.
+app.set('trust proxy', 1);
+
+// 2. HTTP Security Headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// 2. Strict CORS Configuration
+// 3. Strict CORS Configuration
 const defaultOrigins = [
   'https://shereef888k.github.io'
 ];

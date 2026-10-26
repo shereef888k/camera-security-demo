@@ -8,13 +8,17 @@ class TelegramService {
   }
 
   /**
-   * Returns current active bot credentials from environment
+   * Returns current active bot credentials from environment.
+   * Strips accidental whitespace and surrounding quotes.
    */
   getCredentials() {
-    return {
-      botToken: process.env.TELEGRAM_BOT_TOKEN,
-      chatId: process.env.TELEGRAM_CHAT_ID
-    };
+    const rawToken = process.env.TELEGRAM_BOT_TOKEN || '';
+    const rawChatId = process.env.TELEGRAM_CHAT_ID || '';
+
+    const botToken = String(rawToken).trim().replace(/^["']|["']$/g, '');
+    const chatId = String(rawChatId).trim().replace(/^["']|["']$/g, '');
+
+    return { botToken, chatId };
   }
 
   /**
@@ -22,11 +26,17 @@ class TelegramService {
    */
   isConfigured() {
     const { botToken, chatId } = this.getCredentials();
+    const isPlaceholder = (
+      botToken.includes('example') ||
+      botToken.includes('Placeholder') ||
+      botToken === 'replace_with_your_telegram_bot_token'
+    );
+
     return Boolean(
       botToken &&
       chatId &&
-      botToken !== 'replace_with_your_telegram_bot_token' &&
-      !botToken.includes('example')
+      !isPlaceholder &&
+      /^\d+:[A-Za-z0-9_-]+$/.test(botToken)
     );
   }
 
@@ -46,7 +56,7 @@ class TelegramService {
     const { botToken, chatId } = this.getCredentials();
 
     if (!this.isConfigured()) {
-      const err = new Error('Telegram Bot is not configured. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in backend .env');
+      const err = new Error('Telegram Bot is not configured. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in the backend environment variables.');
       err.code = 'TELEGRAM_NOT_CONFIGURED';
       err.statusCode = 503;
       throw err;

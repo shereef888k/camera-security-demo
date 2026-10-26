@@ -241,4 +241,26 @@ describe('Photo Submission & Telegram Integration API', () => {
     assert.strictEqual(photoRes.body.success, false);
     assert.match(photoRes.body.error, /exceeds maximum allowable file size/i);
   });
+
+  test('POST /api/sessions/:id/photo — Returns 503 if Telegram credentials are not configured or are placeholders', async () => {
+    const originalToken = process.env.TELEGRAM_BOT_TOKEN;
+    process.env.TELEGRAM_BOT_TOKEN = 'replace_with_your_telegram_bot_token';
+
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    const photoRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'test.jpg');
+
+    assert.strictEqual(photoRes.status, 503);
+    assert.strictEqual(photoRes.body.success, false);
+    assert.match(photoRes.body.error, /Telegram Bot is not configured/i);
+
+    process.env.TELEGRAM_BOT_TOKEN = originalToken;
+  });
 });

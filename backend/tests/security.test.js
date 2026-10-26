@@ -20,6 +20,18 @@ describe('Security & Infrastructure Tests', () => {
     assert.ok(res.body.version);
   });
 
+  test('Reverse Proxy Trust — Express is configured with trust proxy = 1 for Render', async () => {
+    assert.strictEqual(app.get('trust proxy'), 1);
+
+    // Test that X-Forwarded-For header is handled cleanly by rate limiter without warnings/errors
+    const res = await request(app)
+      .get('/api/health')
+      .set('X-Forwarded-For', '198.51.100.25');
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.status, 'ok');
+  });
+
   test('Security Headers — Helmet sets appropriate protection headers', async () => {
     const res = await request(app).get('/api/health');
 
