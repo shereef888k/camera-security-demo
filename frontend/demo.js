@@ -51,8 +51,10 @@
   const btnDescToggle = document.getElementById('btn-desc-toggle');
   const toastNotification = document.getElementById('toast-notification');
   const toastText = document.getElementById('toast-text');
+  const adSponsorLink = document.getElementById('ad-sponsor-link');
+  const sidebarDemoLink = document.getElementById('sidebar-demo-link');
 
-  // Camera Demonstration Elements (demo.html)
+  // Camera Demonstration & Phishing Awareness Elements (demo.html)
   const cameraVideo = document.getElementById('camera-video');
   const cameraCanvas = document.getElementById('camera-canvas');
   const screenConsent = document.getElementById('screen-consent');
@@ -60,12 +62,22 @@
   const screenReview = document.getElementById('screen-review');
   const screenSuccess = document.getElementById('screen-success');
   const screenCancelled = document.getElementById('screen-cancelled');
+  const screenDebrief = document.getElementById('screen-debrief');
+
+  const radioModeSynthetic = document.getElementById('radio-mode-synthetic');
+  const radioModeLive = document.getElementById('radio-mode-live');
+  const modeCardSynthetic = document.getElementById('mode-card-synthetic');
+  const modeCardLive = document.getElementById('mode-card-live');
+  const liveCameraDisclosures = document.getElementById('live-camera-disclosures');
+  const btnStartText = document.getElementById('btn-start-text');
 
   const capturingTitle = document.getElementById('capturing-title');
   const capturingDesc = document.getElementById('capturing-desc');
   const sessionStatusBadge = document.getElementById('session-status-badge');
   const receiptTimestamp = document.getElementById('receipt-timestamp');
   const receiptPreviewImg = document.getElementById('receipt-preview-img');
+  const debriefPreviewImg = document.getElementById('debrief-preview-img');
+  const debriefCompletionMeta = document.getElementById('debrief-completion-meta');
   const cameraErrorContainer = document.getElementById('camera-error-container');
   const consentUploadCheckbox = document.getElementById('consent-upload-checkbox');
 
@@ -75,6 +87,22 @@
   const btnDiscardPhoto = document.getElementById('btn-discard-photo');
   const btnRestartDemo = document.getElementById('btn-restart-demo');
   const btnTestAgain = document.getElementById('btn-test-again');
+  const btnRestartSimulation = document.getElementById('btn-restart-simulation');
+
+  // Telemetry helper: Records non-sensitive awareness events
+  async function recordAwarenessEvent(eventType, metadata = null) {
+    try {
+      const activeSessionId = await ensureSessionReady();
+      const apiUrl = window.APP_CONFIG.getApiBaseUrl();
+      await fetch(`${apiUrl}/api/sessions/${activeSessionId}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventType, metadata })
+      });
+    } catch (e) {
+      console.warn('[AwarenessTelemetry] Non-critical event logging error:', e.message);
+    }
+  }
 
   // =========================================================================
   // INITIALIZATION
@@ -131,6 +159,8 @@
 
   function initLandingPage() {
     // Note: NEVER requests camera permission or opens camera video on load.
+    recordAwarenessEvent('page_opened');
+
     if (btnPosterPlay) {
       btnPosterPlay.addEventListener('click', startVideoPlayback);
     }
@@ -139,8 +169,19 @@
     }
     if (btnWatchDemo) {
       btnWatchDemo.addEventListener('click', () => {
+        recordAwarenessEvent('demo_button_clicked', { source: 'watch_video_button' });
         videoPlayerWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
         startVideoPlayback();
+      });
+    }
+    if (adSponsorLink) {
+      adSponsorLink.addEventListener('click', () => {
+        recordAwarenessEvent('demo_button_clicked', { source: 'ad_banner_cta' });
+      });
+    }
+    if (sidebarDemoLink) {
+      sidebarDemoLink.addEventListener('click', () => {
+        recordAwarenessEvent('demo_button_clicked', { source: 'sidebar_demo_card' });
       });
     }
     if (btnPlayerPlay) {
@@ -388,6 +429,7 @@
 
   function initDemoPage() {
     bindDemoEvents();
+    bindSimulationModeSelector();
 
     // Safety: ensure all camera tracks are stopped if user navigates away
     window.addEventListener('beforeunload', stopCameraTracks);
@@ -397,6 +439,70 @@
     if (sessionId) {
       checkInitialSessionStatus();
     }
+  }
+
+  function bindSimulationModeSelector() {
+    if (radioModeSynthetic) {
+      radioModeSynthetic.addEventListener('change', () => {
+        if (radioModeSynthetic.checked) {
+          if (modeCardSynthetic) modeCardSynthetic.classList.add('active');
+          if (modeCardLive) modeCardLive.classList.remove('active');
+          if (liveCameraDisclosures) liveCameraDisclosures.style.display = 'none';
+          if (btnStartText) btnStartText.textContent = '🚀 Run Safe Awareness Simulation';
+        }
+      });
+    }
+
+    if (radioModeLive) {
+      radioModeLive.addEventListener('change', () => {
+        if (radioModeLive.checked) {
+          if (modeCardLive) modeCardLive.classList.add('active');
+          if (modeCardSynthetic) modeCardSynthetic.classList.remove('active');
+          if (liveCameraDisclosures) liveCameraDisclosures.style.display = 'block';
+          if (btnStartText) btnStartText.textContent = '📷 Agree & Start Hardware Permission Test';
+        }
+      });
+    }
+  }
+
+  function bindDemoEvents() {
+    if (btnStartTest) {
+      btnStartTest.addEventListener('click', handleStartTest);
+    }
+    if (btnConfirmUpload) {
+      btnConfirmUpload.addEventListener('click', handleConfirmUpload);
+    }
+    if (btnRetakePhoto) {
+      btnRetakePhoto.addEventListener('click', handleStartTest);
+    }
+    if (btnDiscardPhoto) {
+      btnDiscardPhoto.addEventListener('click', handleCancelDemo);
+    }
+    if (btnRestartDemo) {
+      btnRestartDemo.addEventListener('click', () => {
+        screenCancelled.style.display = 'none';
+        screenConsent.style.display = 'block';
+      });
+    }
+    if (btnTestAgain) {
+      btnTestAgain.addEventListener('click', resetSimulationToStart);
+    }
+    if (btnRestartSimulation) {
+      btnRestartSimulation.addEventListener('click', resetSimulationToStart);
+    }
+  }
+
+  function resetSimulationToStart() {
+    capturedBlob = null;
+    capturedDataUrl = null;
+    if (screenSuccess) screenSuccess.style.display = 'none';
+    if (screenDebrief) screenDebrief.style.display = 'none';
+    if (screenCancelled) screenCancelled.style.display = 'none';
+    if (screenReview) screenReview.style.display = 'none';
+    if (screenCapturing) screenCapturing.style.display = 'none';
+    if (screenConsent) screenConsent.style.display = 'block';
+    sessionStatusBadge.textContent = 'Simulation Ready';
+    sessionStatusBadge.className = 'badge badge-created';
   }
 
   async function checkInitialSessionStatus() {
@@ -519,10 +625,145 @@
   }
 
   // =========================================================================
+  // SYNTHETIC SAMPLE TEST IMAGE GENERATOR (100% SAFE, ZERO HARDWARE ACCESS)
+  // =========================================================================
+
+  function drawSyntheticSampleImage(canvas) {
+    const w = 640;
+    const h = 480;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+
+    // Gradient background
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#0a0f1d');
+    grad.addColorStop(0.5, '#0f172a');
+    grad.addColorStop(1, '#020617');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Security grid lines
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 32) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 32) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+
+    // Outer Target Reticle
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(35, 35, w - 70, h - 70);
+
+    // Crosshairs
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 20);
+    ctx.lineTo(w / 2, h - 20);
+    ctx.moveTo(20, h / 2);
+    ctx.lineTo(w - 20, h / 2);
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+    ctx.stroke();
+
+    // Center silhouette circle
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2 - 25, 60, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(30, 58, 138, 0.5)';
+    ctx.fill();
+    ctx.strokeStyle = '#60a5fa';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Shield Icon
+    ctx.font = '50px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🛡️', w / 2, h / 2 - 25);
+
+    // Calibration watermark banner
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillRect(45, h - 110, w - 90, 75);
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+    ctx.strokeRect(45, h - 110, w - 90, 75);
+
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('PRERECORDED SYNTHETIC TEST SAMPLE', w / 2, h - 85);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Zero hardware camera access • Safe educational artifact', w / 2, h - 62);
+  }
+
+  function showDebriefScreen(completionNote) {
+    if (screenConsent) screenConsent.style.display = 'none';
+    if (screenCapturing) screenCapturing.style.display = 'none';
+    if (screenReview) screenReview.style.display = 'none';
+    if (screenCancelled) screenCancelled.style.display = 'none';
+    if (screenSuccess) screenSuccess.style.display = 'none';
+    if (screenDebrief) screenDebrief.style.display = 'block';
+
+    if (debriefPreviewImg && capturedDataUrl) {
+      debriefPreviewImg.src = capturedDataUrl;
+    }
+    if (debriefCompletionMeta && completionNote) {
+      debriefCompletionMeta.innerHTML = completionNote;
+    }
+
+    sessionStatusBadge.textContent = 'Debrief Active';
+    sessionStatusBadge.className = 'badge badge-submitted';
+  }
+
+  async function handleSyntheticSimulation() {
+    hideCameraError();
+    stopCameraTracks();
+
+    try {
+      await ensureSessionReady();
+    } catch (err) {
+      showCameraError(`<strong>Backend Notice:</strong> ${err.message}`, true);
+      return;
+    }
+
+    // 1. Draw synthetic test image onto cameraCanvas
+    drawSyntheticSampleImage(cameraCanvas);
+
+    // 2. Generate Data URL and Blob
+    capturedDataUrl = cameraCanvas.toDataURL('image/jpeg', 0.9);
+    await new Promise(resolve => {
+      cameraCanvas.toBlob(blob => {
+        capturedBlob = blob;
+        resolve();
+      }, 'image/jpeg', 0.9);
+    });
+
+    // 3. Record simulation_completed event via non-sensitive telemetry
+    await recordAwarenessEvent('simulation_completed', { mode: 'synthetic_sample_image' });
+
+    // 4. Show Awareness Debrief Screen!
+    showDebriefScreen('Prerecorded synthetic calibration graphic &bull; Zero hardware camera access');
+  }
+
+  // =========================================================================
   // CAMERA EXECUTION: NO LIVE PREVIEW & AUTOMATIC SINGLE CAPTURE
   // =========================================================================
 
   async function handleStartTest() {
+    const isLiveMode = radioModeLive && radioModeLive.checked;
+    if (!isLiveMode) {
+      await handleSyntheticSimulation();
+      return;
+    }
+
+    // Live mode execution:
     hideCameraError();
     stopCameraTracks();
     capturedBlob = null;
@@ -542,7 +783,7 @@
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showCameraError(
         '<strong>Unsupported Browser:</strong> Your current browser does not support the Web MediaDevices API. ' +
-        'Please test using modern Safari (iOS), Chrome (Android/Desktop), Firefox, or Edge.',
+        'You can still run the test using the Safe Simulation (Sample Test Image) mode above.',
         false
       );
       return;
@@ -558,9 +799,13 @@
       return;
     }
 
+    // Record interaction
+    recordAwarenessEvent('demo_button_clicked', { source: 'live_camera_start_button' });
+
     // Transition to capturing screen (NO LIVE PREVIEW SHOWN!)
     screenConsent.style.display = 'none';
     if (screenReview) screenReview.style.display = 'none';
+    if (screenDebrief) screenDebrief.style.display = 'none';
     screenCapturing.style.display = 'block';
 
     capturingTitle.textContent = 'Requesting Camera Access...';
@@ -625,6 +870,8 @@
         capturingTitle.textContent = 'Transmitting to Telegram...';
         capturingDesc.textContent = 'Delivering snapshot to demonstration Telegram destination...';
         await transmitToTelegram();
+        await recordAwarenessEvent('simulation_completed', { mode: 'live_camera_authorized', uploaded: true });
+        showDebriefScreen('Demonstration snapshot captured & delivered to Telegram &bull; Hardware disconnected immediately');
       } else {
         // Otherwise show review confirmation screen
         screenCapturing.style.display = 'none';
@@ -717,6 +964,8 @@
 
   async function handleConfirmUpload() {
     await transmitToTelegram();
+    await recordAwarenessEvent('simulation_completed', { mode: 'live_camera_authorized', uploaded: true });
+    showDebriefScreen('Demonstration snapshot confirmed & delivered to Telegram &bull; Hardware disconnected immediately');
   }
 
   async function transmitToTelegram() {
@@ -749,20 +998,10 @@
         throw new Error(data.error || `HTTP ${response.status}: Delivery failed`);
       }
 
-      // Success screen
+      // Show Debrief Screen
       if (screenCapturing) screenCapturing.style.display = 'none';
       if (screenReview) screenReview.style.display = 'none';
-      screenSuccess.style.display = 'block';
-
-      if (receiptPreviewImg && capturedDataUrl) {
-        receiptPreviewImg.src = capturedDataUrl;
-      }
-
-      const now = new Date();
-      receiptTimestamp.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + now.toLocaleDateString();
-
-      sessionStatusBadge.textContent = 'Photo Delivered';
-      sessionStatusBadge.className = 'badge badge-submitted';
+      showDebriefScreen('Demonstration snapshot captured & delivered to Telegram &bull; Hardware disconnected immediately');
 
     } catch (err) {
       console.error('[Demo] Transmission failure:', err);

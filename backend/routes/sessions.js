@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const db = require('../services/db');
+const telegramService = require('../services/telegram');
 const { requireAdminAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -136,13 +137,100 @@ router.get('/:id', (req, res, next) => {
     }
 
     // Return limited public information (never expose internals)
+    const events = db.listEvents(id);
     return res.json({
       success: true,
       id: session.id,
       label: session.label,
       status: effectiveStatus,
       createdAt: session.createdAt,
-      expiresAt: session.expiresAt
+      expiresAt: session.expiresAt,
+      events
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const ALLOWED_EVENT_TYPES = ['page_opened', 'demo_button_clicked', 'simulation_completed'];
+
+/**
+ * POST /api/sessions/:id/events
+ * Record a non-sensitive awareness demonstration event (page_opened, demo_button_clicked, simulation_completed).
+ * Sends a non-sensitive Telegram notification to the administrator if Telegram is configured.
+ */
+router.post('/:id/events', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { eventType, metadata } = req.body || {};
+
+    if (!isValidSessionId(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid session ID format.'
+      });
+    }
+
+    if (!eventType || !ALLOWED_EVENT_TYPES.includes(eventType)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid event type. Allowed types: ${ALLOWED_EVENT_TYPES.join(', ')}`
+      });
+    }
+
+    const session = db.getSessionById(id);
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found.'
+      });
+    }
+
+    // Record event in DB
+    const now = new Date().toISOString();
+    const event = db.recordEvent({
+      sessionId: id,
+      eventType,
+      metadata: typeof metadata === 'object' ? metadata : null,
+      createdAt: now
+    });
+
+    // If event is page_opened, also update session status to opened if it was created
+    if (eventType === 'page_opened' && session.status === 'created') {
+      db.markSessionOpened(id);
+    }
+
+    // Send non-sensitive Telegram notification if configured
+    let telegramNotified = false;
+    if (telegramService.isConfigured()) {
+      try {
+        const eventLabels = {
+          page_opened: '🌐 Landing Page Viewed',
+          demo_button_clicked: '🖱️ Simulation CTA Interacted',
+          simulation_completed: '🎓 Awareness Simulation Completed'
+        };
+
+        const eventTitle = eventLabels[eventType] || eventType;
+        const shortSession = id.substring(0, 8);
+        const msg = [
+          `<b>🛡️ Phishing Awareness Telemetry</b>`,
+          `<b>Event:</b> ${eventTitle}`,
+          `<b>Session:</b> <code>#${shortSession}</code>`,
+          `<b>Time:</b> ${now}`,
+          `<i>Note: Non-sensitive educational event log.</i>`
+        ].join('\n');
+
+        await telegramService.sendMessage({ text: msg });
+        telegramNotified = true;
+      } catch (tgErr) {
+        console.warn('[Sessions] Non-critical Telegram event notification failure:', tgErr.message);
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      event,
+      telegramNotified
     });
   } catch (err) {
     next(err);

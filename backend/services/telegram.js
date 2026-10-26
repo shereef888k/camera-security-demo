@@ -174,7 +174,75 @@ class TelegramService {
       throw networkErr;
     }
   }
+
+  /**
+   * Sends a non-sensitive text notification to the configured Telegram chat.
+   * Used exclusively for awareness simulation telemetry (e.g. demo button clicked, simulation completed).
+   *
+   * @param {Object} params
+   * @param {string} params.text - Formatted HTML message text
+   * @returns {Promise<{ ok: boolean, messageId?: number }>}
+   */
+  async sendMessage({ text }) {
+    const check = this.validateConfiguration();
+
+    if (!check.configured) {
+      const err = new Error(`Telegram Bot is not configured: ${check.reason}.`);
+      err.code = 'TELEGRAM_NOT_CONFIGURED';
+      err.statusCode = 503;
+      throw err;
+    }
+
+    const { botToken, chatId } = check;
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const fetchFn = this.customFetch || globalThis.fetch;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const response = await fetchFn(telegramUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeout);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.ok) {
+        const errorDesc = data.description || `HTTP ${response.status} from Telegram`;
+        console.error('[TelegramService] Telegram sendMessage error:', errorDesc);
+        const error = new Error(`Telegram delivery failed: ${errorDesc}`);
+        error.statusCode = response.status === 429 ? 429 : 502;
+        throw error;
+      }
+
+      return {
+        ok: true,
+        messageId: data.result ? data.result.message_id : null
+      };
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        const timeoutErr = new Error('Telegram API request timed out after 10 seconds.');
+        timeoutErr.statusCode = 504;
+        throw timeoutErr;
+      }
+      if (err.statusCode) throw err;
+      const networkErr = new Error('Could not connect to Telegram Bot API service.');
+      networkErr.statusCode = 502;
+      throw networkErr;
+    }
+  }
 }
 
 module.exports = new TelegramService();
 module.exports.TelegramService = TelegramService;
+

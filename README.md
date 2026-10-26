@@ -4,11 +4,14 @@
 [![Express](https://img.shields.io/badge/Express-4.21.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![SQLite](https://img.shields.io/badge/Database-SQLite%20Persistent-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Telegram Bot API](https://img.shields.io/badge/Telegram-Bot%20API%20sendPhoto-26A5E4?logo=telegram&logoColor=white)](https://core.telegram.org/bots/api#sendphoto)
-[![Tests](https://img.shields.io/badge/Tests-32%20Passed-brightgreen)](https://nodejs.org/api/test.html)
+[![Tests](https://img.shields.io/badge/Tests-34%20Passed-brightgreen)](https://nodejs.org/api/test.html)
 
-A professional, consent-based Camera Security Awareness Demonstration platform designed to evaluate browser camera permission models across desktop and mobile browsers.
+A professional, consent-based Phishing & Camera Security Awareness Demonstration platform designed to evaluate browser permission models and social engineering recognition across desktop and mobile devices.
 
-The platform provides a modern, video-style landing page with video playback simulation, thumbnails, and advertisement-style content, with zero camera access on initial page load or ordinary video playback. A separate, clearly disclosed **Educational Camera Security Test** allows visitors to understand how browser permissions work: after explicit agreement and granting browser camera permissions, the platform captures a single demonstration photo without displaying a live camera preview, stops camera tracks immediately, and delivers the photo to the configured Telegram destination.
+The platform provides a modern, video-style landing page with video playback simulation, thumbnails, and advertisement-style content, with zero camera access on initial page load or ordinary video playback. A separate, clearly disclosed **Phishing Awareness Simulation** allows visitors to understand how misleading pages lure users and how browser security protects them:
+- **Safe Simulation Mode**: Uses a prerecorded synthetic test graphic (100% safe, zero camera hardware access).
+- **Live Hardware Gate Mode**: Audits the browser's native permission prompt, captures a single snapshot without live preview, disconnects camera tracks immediately, and delivers to Telegram only with explicit authorization.
+- **Awareness Debrief**: Explains critical red flags (context mismatch, social engineering lures, native permission gates, hardware LED status) and reviews non-sensitive demonstration telemetry (`page_opened`, `demo_button_clicked`, `simulation_completed`).
 
 > [!IMPORTANT]
 > **Strict Consent Protocol**: This is an educational security awareness platform. It incorporates **zero hidden capture**, **no covert tracking**, **no permission bypasses**, and **no disguise of camera access as video playback**. All camera access is clearly disclosed on a dedicated demonstration page and strictly respects browser permission gates.
@@ -190,10 +193,10 @@ Expected output:
 ```text
 ✔ Photo Submission & Telegram Integration API (14 tests passed)
 ✔ Security & Infrastructure Tests (8 tests passed)
-✔ Sessions API Endpoints (10 tests passed)
-ℹ tests 32
+✔ Sessions API Endpoints (12 tests passed)
+ℹ tests 34
 ℹ suites 3
-ℹ pass 32
+ℹ pass 34
 ℹ fail 0
 ```
 

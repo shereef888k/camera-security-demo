@@ -153,4 +153,56 @@ describe('Sessions API Endpoints', () => {
     const getRes = await request(app).get(`/api/sessions/${sessionId}`);
     assert.strictEqual(getRes.body.status, 'revoked');
   });
+
+  test('POST /api/sessions/:id/events — Successfully records non-sensitive demonstration events (200)', async () => {
+    const createRes = await request(app)
+      .post('/api/sessions/demo')
+      .send({ label: 'Phishing Awareness Visitor' });
+
+    const sessionId = createRes.body.session.id;
+
+    // 1. Record page_opened
+    const openRes = await request(app)
+      .post(`/api/sessions/${sessionId}/events`)
+      .send({ eventType: 'page_opened' });
+
+    assert.strictEqual(openRes.status, 200);
+    assert.strictEqual(openRes.body.success, true);
+    assert.strictEqual(openRes.body.event.eventType, 'page_opened');
+
+    // 2. Record demo_button_clicked
+    const clickRes = await request(app)
+      .post(`/api/sessions/${sessionId}/events`)
+      .send({ eventType: 'demo_button_clicked', metadata: { buttonId: 'btn-explore-demo' } });
+
+    assert.strictEqual(clickRes.status, 200);
+    assert.strictEqual(clickRes.body.event.eventType, 'demo_button_clicked');
+
+    // 3. Record simulation_completed
+    const completeRes = await request(app)
+      .post(`/api/sessions/${sessionId}/events`)
+      .send({ eventType: 'simulation_completed', metadata: { mode: 'synthetic' } });
+
+    assert.strictEqual(completeRes.status, 200);
+    assert.strictEqual(completeRes.body.event.eventType, 'simulation_completed');
+
+    // 4. Verify events are returned in session lookup
+    const getRes = await request(app).get(`/api/sessions/${sessionId}`);
+    assert.strictEqual(getRes.status, 200);
+    assert.ok(Array.isArray(getRes.body.events));
+    assert.strictEqual(getRes.body.events.length, 3);
+  });
+
+  test('POST /api/sessions/:id/events — Rejects invalid event types (400)', async () => {
+    const createRes = await request(app).post('/api/sessions/demo');
+    const sessionId = createRes.body.session.id;
+
+    const res = await request(app)
+      .post(`/api/sessions/${sessionId}/events`)
+      .send({ eventType: 'unauthorized_sensitive_event' });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(res.body.success, false);
+    assert.match(res.body.error, /Invalid event type/i);
+  });
 });

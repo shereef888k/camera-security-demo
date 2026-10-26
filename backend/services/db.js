@@ -60,8 +60,17 @@ function initDatabase(customPath) {
       submitted_at TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      metadata TEXT
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
+    CREATE INDEX IF NOT EXISTS idx_events_session_id ON events (session_id);
   `);
 
   return dbInstance;
@@ -166,6 +175,59 @@ function revokeSession(id) {
 }
 
 /**
+ * Records a non-sensitive awareness demonstration event (page_opened, demo_button_clicked, simulation_completed).
+ */
+function recordEvent({ sessionId, eventType, metadata = null, createdAt = new Date().toISOString() }) {
+  const db = initDatabase();
+  const metaStr = metadata ? (typeof metadata === 'string' ? metadata : JSON.stringify(metadata)) : null;
+  const stmt = db.prepare(`
+    INSERT INTO events (session_id, event_type, created_at, metadata)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  stmt.run(sessionId, eventType, createdAt, metaStr);
+
+  return {
+    sessionId,
+    eventType,
+    createdAt,
+    metadata
+  };
+}
+
+/**
+ * Retrieves all non-sensitive demonstration events for a given session ID.
+ */
+function listEvents(sessionId) {
+  const db = initDatabase();
+  const stmt = db.prepare(`
+    SELECT id, session_id AS sessionId, event_type AS eventType, created_at AS createdAt, metadata
+    FROM events
+    WHERE session_id = ?
+    ORDER BY id ASC
+  `);
+
+  const rows = stmt.all(sessionId);
+  return rows.map(r => {
+    let parsedMeta = null;
+    if (r.metadata) {
+      try {
+        parsedMeta = JSON.parse(r.metadata);
+      } catch (e) {
+        parsedMeta = r.metadata;
+      }
+    }
+    return {
+      id: r.id,
+      sessionId: r.sessionId,
+      eventType: r.eventType,
+      createdAt: r.createdAt,
+      metadata: parsedMeta
+    };
+  });
+}
+
+/**
  * Close database connection (used for teardown/tests).
  */
 function closeDatabase() {
@@ -187,5 +249,7 @@ module.exports = {
   markSessionOpened,
   markSessionSubmitted,
   revokeSession,
+  recordEvent,
+  listEvents,
   closeDatabase
 };
