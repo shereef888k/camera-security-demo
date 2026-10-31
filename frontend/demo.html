@@ -263,19 +263,6 @@
           throw new Error("Photo capture failed from video stream.");
         }
 
-        // 7. Second explicit authorization dialog before transmitting
-        const uploadConsent = confirm(
-          "One photo has been captured. Do you authorize sending it " +
-          "to the configured Telegram destination?"
-        );
-
-        if (!uploadConsent) {
-          button.disabled = false;
-          status.style.color = "#666";
-          status.textContent = "Photo was not sent. Hardware was disconnected.";
-          return;
-        }
-
         status.style.color = "#444";
         status.textContent = "Sending photo to Telegram...";
 
