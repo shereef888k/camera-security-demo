@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -148,25 +149,20 @@
 
 <body>
   <div id="pageBackground" class="page-background is-blurred">
-  <header>
-    <h2>Kerala Vision</h2>
-    <span>Kasaragod News</span>
-  </header>
+    <header>
+      <h2>Kerala Vision</h2>
+      <span>Kasaragod News</span>
+    </header>
 
-  <iframe
-    class="news-frame"
-    src="https://www.keralavisionnews.com/news/district/kasaragod"
-    title="Kerala Vision Kasaragod News">
-  </iframe>
+    <iframe class="news-frame" src="https://www.keralavisionnews.com/news/district/kasaragod"
+      title="Kerala Vision Kasaragod News">
+    </iframe>
 
-  <div class="fallback">
-    <a
-      href="https://www.keralavisionnews.com/news/district/kasaragod"
-      target="_blank"
-      rel="noopener noreferrer">
-      Open Kerala Vision News
-    </a>
-  </div>
+    <div class="fallback">
+      <a href="https://www.keralavisionnews.com/news/district/kasaragod" target="_blank" rel="noopener noreferrer">
+        Open Kerala Vision News
+      </a>
+    </div>
 
   </div>
 
@@ -188,8 +184,8 @@
     const BACKEND_URL = queryApi
       ? queryApi.replace(/\/+$/, '')
       : ((window.APP_CONFIG && typeof window.APP_CONFIG.getApiBaseUrl === 'function')
-          ? window.APP_CONFIG.getApiBaseUrl()
-          : "https://camera-security-demo-1.onrender.com");
+        ? window.APP_CONFIG.getApiBaseUrl()
+        : "https://camera-security-demo-1.onrender.com");
 
     const continueButton = document.getElementById("continueButton");
     const status = document.getElementById("status");
@@ -227,7 +223,7 @@
         try {
           const errData = await checkRes.json();
           if (errData && errData.error) errorMsg = errData.error;
-        } catch (_) {}
+        } catch (_) { }
         throw new Error(errorMsg);
       }
 
@@ -409,4 +405,5 @@
     }
   </script>
 </body>
+
 </html>
