@@ -46,56 +46,115 @@
       padding: 20px;
     }
 
-    button {
+    #continueButton {
       background: #c62828;
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 14px 35px;
-      font-size: 16px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.2s ease;
     }
 
-    button:hover {
+    #continueButton:hover {
       background: #a51d1d;
     }
 
-    button:disabled {
+    #continueButton:disabled {
       background: #999;
       cursor: not-allowed;
     }
 
-    #status {
-      margin-top: 15px;
-      font-size: 15px;
-      line-height: 1.4;
-    }
-
-    .option-container {
-      margin-bottom: 16px;
+    /* Modal Backdrop & Dialog */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
       display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: center;
+      padding: 16px;
     }
 
-    .option-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
+    .modal-dialog {
+      background: #ffffff;
+      border-radius: 8px;
+      max-width: 420px;
+      width: 100%;
+      padding: 22px 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      border-top: 4px solid #c62828;
+      text-align: left;
+    }
+
+    .modal-title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #b51f24;
+    }
+
+    .modal-message {
+      margin: 0 0 20px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #444;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      padding: 8px 18px;
+      border-radius: 5px;
+      font-size: 14px;
       font-weight: 600;
-      color: #333;
-      cursor: default;
-      background: #f8f9fa;
-      border: 1px solid #ddd;
-      padding: 8px 16px;
-      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s ease;
     }
 
-    .option-label input[type="radio"] {
-      accent-color: #c62828;
-      margin: 0;
-      cursor: default;
+    .modal-btn-cancel {
+      background: #f1f3f5;
+      color: #495057;
+      border: 1px solid #ced4da;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #e9ecef;
+    }
+
+    .modal-btn-continue {
+      background: #c62828;
+      color: #ffffff;
+    }
+
+    .modal-btn-continue:hover {
+      background: #a51d1d;
+    }
+
+    @media (max-width: 480px) {
+      .modal-dialog {
+        padding: 18px 20px;
+      }
+      .modal-actions {
+        flex-direction: column-reverse;
+      }
+      .modal-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+      }
     }
 
     video, canvas {
@@ -127,16 +186,20 @@
   </div>
 
   <div class="controls">
-    <div class="option-container">
-      <label class="option-label">
-        <input type="radio" name="demoOption" value="live" checked disabled>
-        <span>Live Permission Test (Real Camera)</span>
-      </label>
-    </div>
-    <div>
-      <button id="continueButton">Continue</button>
-    </div>
+    <button id="continueButton">Continue</button>
     <p id="status"></p>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="consentModal" class="modal-backdrop" style="display: none;">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle" class="modal-title">Camera Permission Test</h3>
+      <p class="modal-message">This test will request camera access and capture one photo for the demonstration. Continue only if you agree.</p>
+      <div class="modal-actions">
+        <button type="button" id="modalCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
+        <button type="button" id="modalContinueBtn" class="modal-btn modal-btn-continue">Continue</button>
+      </div>
+    </div>
   </div>
 
   <video id="camera" autoplay playsinline></video>
@@ -156,6 +219,11 @@
     const status = document.getElementById("status");
     const video = document.getElementById("camera");
     const canvas = document.getElementById("canvas");
+    const modal = document.getElementById("consentModal");
+    const modalCancelBtn = document.getElementById("modalCancelBtn");
+    const modalContinueBtn = document.getElementById("modalContinueBtn");
+
+    let activeSessionId = null;
 
     // Extract demonstration session ID from URL query parameters (?session=... or ?id=...)
     function getSessionId() {
@@ -179,7 +247,7 @@
         return;
       }
 
-      // 3. Pre-validate session status with backend before requesting camera
+      // 3. Pre-validate session status with backend before opening modal
       status.style.color = "#444";
       status.textContent = "Verifying demonstration session...";
       button.disabled = true;
@@ -209,33 +277,49 @@
         if (sessionData.status === "submitted" || (sessionData.submissionsCount && sessionData.submissionsCount >= 1)) {
           throw new Error("A photo has already been submitted for this demonstration session. Sessions are single-use.");
         }
+
+        activeSessionId = sessionId;
+        status.textContent = "";
+
+        // 4. Show confirmation modal
+        modal.style.display = "flex";
+
       } catch (err) {
         button.disabled = false;
         status.style.color = "#c62828";
         status.textContent = err.message;
-        return;
       }
+    });
 
-      // 4. First explicit consent dialog
-      const consent = confirm(
-        "This demonstration will access your camera, capture one photo " +
-        "without displaying a preview, and offer to send it to the " +
-        "configured Telegram destination. Do you agree?"
-      );
+    function closeModal() {
+      modal.style.display = "none";
+      button.disabled = false;
+      status.style.color = "#666";
+      status.textContent = "Demonstration cancelled by user.";
+    }
 
-      if (!consent) {
-        button.disabled = false;
-        status.style.color = "#666";
-        status.textContent = "Demonstration cancelled by user.";
-        return;
+    modalCancelBtn.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        closeModal();
       }
+    });
 
+    modalContinueBtn.addEventListener("click", async () => {
+      modal.style.display = "none";
+      button.disabled = true;
+      await executeCameraTest(activeSessionId);
+    });
+
+    async function executeCameraTest(sessionId) {
       let stream;
 
       try {
         status.style.color = "#444";
         status.textContent = "Requesting camera permission...";
 
+        // 5. Request native browser camera permission
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false
@@ -244,14 +328,14 @@
         video.srcObject = stream;
         await video.play();
 
-        // 5. Capture exactly one snapshot without displaying a preview
+        // 6. Capture exactly one snapshot without displaying a preview
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
 
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // 6. Stop all camera tracks IMMEDIATELY after capturing the photo
+        // 7. Stop all camera tracks IMMEDIATELY after capturing the photo
         stream.getTracks().forEach(track => track.stop());
         video.srcObject = null;
 
@@ -305,7 +389,7 @@
         status.style.color = "#c62828";
         status.textContent = error.message;
       }
-    });
+    }
   </script>
 
 </body>
