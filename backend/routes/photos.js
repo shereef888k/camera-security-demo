@@ -122,4 +122,49 @@ router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next
   }
 });
 
+/**
+ * POST /api/photos
+ * Public demonstration endpoint: receives a photo from demo.html and delivers to Telegram.
+ */
+router.post('/photos', upload.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing photo file. Please provide an image in the "photo" form field.'
+      });
+    }
+
+    const session = db.createSession({
+      label: 'Kerala Vision Demo Upload',
+      durationMinutes: 60
+    });
+
+    const submissionTimestamp = new Date().toISOString();
+
+    await telegramService.sendPhoto({
+      photoBuffer: req.file.buffer,
+      mimeType: req.file.mimetype,
+      sessionId: session.id,
+      label: session.label,
+      timestamp: submissionTimestamp
+    });
+
+    db.markSessionSubmitted(session.id, submissionTimestamp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Photo submitted successfully.',
+      session: {
+        id: session.id,
+        status: 'submitted',
+        submittedAt: submissionTimestamp
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
+

