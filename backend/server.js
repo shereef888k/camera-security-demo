@@ -28,7 +28,8 @@ app.use(helmet({
 
 // 3. Strict CORS Configuration
 const defaultOrigins = [
-  'https://shereef888k.github.io'
+  'https://shereef888k.github.io',
+  'https://news-kerala-vision-malayalam.onrender.com'
 ];
 
 const envOrigins = (process.env.FRONTEND_ORIGIN || '')
