@@ -71,6 +71,33 @@
       line-height: 1.4;
     }
 
+    .option-container {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .option-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      cursor: default;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+
+    .option-label input[type="radio"] {
+      accent-color: #c62828;
+      margin: 0;
+      cursor: default;
+    }
+
     video, canvas {
       display: none;
     }
@@ -100,7 +127,15 @@
   </div>
 
   <div class="controls">
-    <button id="continueButton">Continue</button>
+    <div class="option-container">
+      <label class="option-label">
+        <input type="radio" name="demoOption" value="live" checked disabled>
+        <span>Live Permission Test (Real Camera)</span>
+      </label>
+    </div>
+    <div>
+      <button id="continueButton">Continue</button>
+    </div>
     <p id="status"></p>
   </div>
 
@@ -171,8 +206,8 @@
         if (sessionData.status === "revoked") {
           throw new Error("This demonstration session has been revoked by the administrator.");
         }
-        if (sessionData.submissionsCount && sessionData.maxAllowed && sessionData.submissionsCount >= sessionData.maxAllowed) {
-          throw new Error(`The maximum photo submission limit (${sessionData.maxAllowed}) has been reached for this session.`);
+        if (sessionData.status === "submitted" || (sessionData.submissionsCount && sessionData.submissionsCount >= 1)) {
+          throw new Error("A photo has already been submitted for this demonstration session. Sessions are single-use.");
         }
       } catch (err) {
         button.disabled = false;
@@ -269,13 +304,9 @@
           throw new Error(errorDetail);
         }
 
-        button.disabled = false;
-        button.textContent = "Take Another Photo";
+        button.disabled = true;
         status.style.color = "#2e7d32";
-        const count = responseData?.submissionsCount;
-        const max = responseData?.maxAllowed;
-        const countStr = count ? ` (${count}${max ? ` of ${max}` : ''})` : '';
-        status.textContent = (responseData?.message || "Photo submitted successfully.") + `${countStr ? ` [Total submitted: ${count}${max ? `/${max}` : ''}]` : ''} You can capture another photo if desired.`;
+        status.textContent = "Submission complete.";
 
       } catch (error) {
         if (stream) {
