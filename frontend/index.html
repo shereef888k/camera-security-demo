@@ -1,29 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ml">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="NovaPulse Media — Next-Generation 4K CGI Cinematics, Motion Design Breakdowns, and Ambient Soundscapes.">
-  <title>NovaPulse Media — 4K CGI & Cinematic Motion Showcase</title>
+  <meta name="description" content="Kasaragod News | കാസർഗോഡ് വാർത്തകൾ | Kasaragod Vision News | കാസർഗോഡ് വാർത്ത - ഏറ്റവും പുതിയ വാർത്തകളും തത്സമയ അപ്‌ഡേറ്റുകളും.">
+  <meta name="keywords" content="Kasaragod News, കാസർഗോഡ് വാർത്തകൾ, Kasaragod Vision News, കാസർഗോഡ് വാർത്ത">
+  <title>Kasaragod News | കാസർഗോഡ് വാർത്തകൾ | Kasaragod Vision News | കാസർഗോഡ് വാർത്ത</title>
   <link rel="stylesheet" href="./style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>">
 </head>
 <body>
-  <!-- Header Navigation -->
+
+  <!-- Top Metadata Bar -->
+  <div class="news-top-bar">
+    <div class="news-top-content">
+      <div class="news-top-left">
+        <span class="edition-badge">കാസർഗോഡ് എഡിഷൻ</span>
+        <span id="current-ist-date">ശനി, ഒക്ടോബർ 31, 2026 | 06:35 pm IST</span>
+      </div>
+      <div class="weather-badge">
+        <span>⛅ കാസർഗോഡ് 29°C</span>
+        <span style="color: #64748b;">|</span>
+        <span>തീരദേശ കാറ്റ്: 14 km/h</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breaking News Ticker Strip -->
+  <div class="breaking-news-strip" role="marquee" aria-label="Breaking News">
+    <div class="breaking-label">
+      <span class="live-pulse-dot"></span>
+      <span>ബ്രേക്കിംഗ് ന്യൂസ്</span>
+    </div>
+    <div class="breaking-marquee-container">
+      <div class="breaking-marquee-track">
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> ദേശീയ സെമിനാറിനിടെ പ്രതിഷേധം; വിദ്യാര്‍ത്ഥികള്‍ക്കെതിരെ കേസ്</span>
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> ഭാര്യവീട്ടിൽ നിന്ന് ബൈക്കിൽ തിരിച്ചുവരവേ യുവാവിന് മിന്നലേറ്റു, ആശുപത്രിയിലെത്തിച്ചെങ്കിലും മരിച്ചു</span>
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> മന്ത്രി ഒ ജെ ജനീഷിനെ വീണ്ടും തടഞ്ഞ് DYFI; വഴിയൊരുക്കി യൂത്ത് കോൺഗ്രസ് സ്വീകരണം</span>
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> കാലിക്കടവ് എംഡിഎംഎ കടത്ത്: മുഖ്യപ്രതിയായ വിദേശപൗരന്‍ യുപിയില്‍ പിടിയില്‍</span>
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> കാഞ്ഞങ്ങാട് റെയിൽവേ വികസനം: നിർമ്മാണ പ്രവർത്തനങ്ങൾ വേഗത്തിലാക്കാൻ നിർദ്ദേശം</span>
+        <span class="ticker-item"><span class="ticker-bullet">▪</span> മഞ്ചേശ്വരം അതിർത്തി ചെക്ക്പോസ്റ്റിൽ വാഹന പരിശോധന കർശനമാക്കി</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Header -->
   <header class="app-header">
     <div class="header-content">
-      <a href="./index.html" class="brand" aria-label="NovaPulse Media Hub">
-        <div class="brand-icon">🎬</div>
-        <div>
-          <div class="brand-title">NovaPulse Media</div>
-          <div class="brand-subtitle">Cinema & Motion Design Hub</div>
+      
+      <!-- Brand Logo -->
+      <a href="./index.html" class="kv-brand-logo" aria-label="Kasaragod Vision News">
+        <div class="kv-logo-badge">
+          <span class="kv-logo-text-top">KERALA</span>
+          <span class="kv-logo-text-bottom">VISION</span>
+        </div>
+        <div class="kv-brand-text">
+          <div class="main-name">
+            കാസർഗോഡ് വിഷൻ ന്യൂസ്
+            <span class="live-indicator">LIVE</span>
+          </div>
+          <div class="sub-name">Kasaragod Vision News &bull; 24x7 District Bureau</div>
         </div>
       </a>
 
       <!-- Search Bar -->
       <div class="header-search">
         <span class="header-search-icon">🔍</span>
-        <input type="text" class="header-search-input" placeholder="Search 4K cinematics, CGI breakdowns, soundtracks, gear..." aria-label="Search">
+        <input type="text" class="header-search-input" placeholder="കാസർഗോഡ് വാർത്തകൾ, വീഡിയോകൾ തിരയുക..." aria-label="Search news">
       </div>
 
       <!-- Actions -->
@@ -36,60 +79,78 @@
           <span id="status-text">Checking API...</span>
         </div>
       </div>
+
     </div>
   </header>
+
+  <!-- News Category Navigation Bar -->
+  <nav class="category-nav-bar" aria-label="News Categories">
+    <ul class="category-nav-list">
+      <li class="cat-nav-item"><a href="#latest">ഏറ്റവും പുതിയത്</a></li>
+      <li class="cat-nav-item active"><a href="#kasaragod">കാസർഗോഡ്</a></li>
+      <li class="cat-nav-item"><a href="#districts">ജില്ലകൾ</a></li>
+      <li class="cat-nav-item"><a href="#politics">രാഷ്ട്രീയം</a></li>
+      <li class="cat-nav-item"><a href="#crime">ക്രൈം</a></li>
+      <li class="cat-nav-item"><a href="#pravasam">പ്രവാസം</a></li>
+      <li class="cat-nav-item"><a href="#movies">സിനിമ</a></li>
+      <li class="cat-nav-item"><a href="#sports">കായികം</a></li>
+      <li class="cat-nav-item"><a href="./demo.html" style="color: #60a5fa;">🛡️ സെക്യൂരിറ്റി ലാബ്</a></li>
+    </ul>
+  </nav>
 
   <!-- Main Container -->
   <main class="container">
     <div class="video-page-grid">
       
-      <!-- Main Column: Video Player, Metadata, Ad Banner, Description & Comments -->
+      <!-- Main Column: Video Player, Metadata, Description & Regional News -->
       <div class="video-main-column">
         
         <!-- Video Player Frame -->
-        <div class="video-player-wrapper" id="video-player-wrapper" role="region" aria-label="Featured Video Player">
+        <div class="video-player-wrapper" id="video-player-wrapper" role="region" aria-label="Featured Live News Stream">
           
           <!-- Video Thumbnail / Poster -->
-          <div class="video-poster" id="video-poster">
+          <div class="video-poster" id="video-poster" style="background: radial-gradient(circle at 75% 30%, rgba(220, 38, 38, 0.45), transparent 60%), radial-gradient(circle at 25% 75%, rgba(15, 23, 42, 0.9), transparent 55%), linear-gradient(135deg, #180000 0%, #0c1222 50%, #030712 100%);">
             <div class="poster-top-bar">
-              <span class="poster-badge">ORIGINAL CINEMA</span>
-              <span class="poster-badge" style="color: #4ade80;">4K ULTRA HD 60FPS</span>
+              <span class="poster-badge" style="background: #e00000; color: #ffffff; border-color: #ff4d4d;">
+                <span class="live-pulse-dot" style="background: #ffffff;"></span> 24x7 തത്സമയം
+              </span>
+              <span class="poster-badge" style="color: #4ade80;">HD 1080P ലൈവ് സ്ട്രീം</span>
             </div>
 
             <!-- Central Play Button -->
             <div class="poster-center-play">
-              <div class="play-button-glow" id="btn-poster-play" role="button" aria-label="Play video">
+              <div class="play-button-glow" id="btn-poster-play" role="button" aria-label="Play video" style="background: linear-gradient(135deg, #e00000, #b91c1c); box-shadow: 0 0 30px rgba(224, 0, 0, 0.7);">
                 <span>▶</span>
               </div>
-              <span class="play-label">Play Feature</span>
+              <span class="play-label">ലൈവ് ന്യൂസ് കാണുക</span>
             </div>
 
             <div class="poster-bottom-bar">
               <div class="poster-title-overlay">
-                <div class="poster-series-tag">ORIGINAL SCI-FI SHOWCASE &bull; EPISODE 04</div>
-                <div class="poster-main-title">Chronicles of the Deep Cosmos: 4K HDR Sci-Fi Cinematic & CGI Showcase</div>
+                <div class="poster-series-tag" style="color: #f87171;">പ്രത്യേക വാർത്താ സംപ്രേഷണം &bull; കാസർഗോഡ് ബ്യൂറോ</div>
+                <div class="poster-main-title">കാസർഗോഡ് വിഷൻ ന്യൂസ് ലൈവ് ബുള്ളറ്റിൻ: ജില്ലയിലെ പ്രധാന വാർത്തകളും തത്സമയ വിവരങ്ങളും</div>
               </div>
-              <div class="poster-duration">03:42</div>
+              <div class="poster-duration" style="background: #e00000; font-weight: 800;">LIVE</div>
             </div>
           </div>
 
-          <!-- Video Playback Stage (Interactive Canvas-based cinematic renderer) -->
+          <!-- Video Playback Stage (Interactive Canvas-based TV Studio broadcast renderer) -->
           <div class="video-canvas-stage" id="video-canvas-stage" style="display: none;">
             <canvas id="interactive-video-canvas" class="interactive-demo-canvas"></canvas>
             
             <!-- Controls Bar -->
             <div class="video-controls-bar" id="video-controls-bar">
               <div class="video-scrubber-bar" id="video-scrubber" title="Seek position">
-                <div class="video-scrubber-progress" id="video-scrubber-progress"></div>
+                <div class="video-scrubber-progress" id="video-scrubber-progress" style="background: linear-gradient(90deg, #e00000, #f87171);"></div>
               </div>
               <div class="video-controls-row">
                 <div class="controls-left">
                   <button type="button" class="ctrl-btn" id="btn-player-play" aria-label="Play or Pause">⏸</button>
-                  <span class="timecode-display" id="video-timecode">00:00 / 03:42</span>
+                  <span class="timecode-display" id="video-timecode">00:00 / LIVE</span>
                 </div>
                 <div class="controls-right">
                   <button type="button" class="ctrl-btn" id="btn-player-mute" aria-label="Mute or Unmute">🔊</button>
-                  <span class="code-pill" style="font-size: 0.7rem; color: #38bdf8;">4K60 HDR</span>
+                  <span class="code-pill" style="font-size: 0.7rem; color: #f87171; border: 1px solid rgba(220, 38, 38, 0.4);">LIVE HD</span>
                   <button type="button" class="ctrl-btn" id="btn-player-fullscreen" aria-label="Fullscreen">⛶</button>
                 </div>
               </div>
@@ -98,128 +159,285 @@
 
         </div>
 
-        <!-- Video Title & Metrics -->
+        <!-- Video Title & Metrics Area -->
         <div class="video-title-area">
           <h1 class="video-primary-title">
-            Chronicles of the Deep Cosmos: 4K HDR Sci-Fi Cinematic & CGI Showcase
+            കാസർഗോഡ് വാർത്താ വിശകലനം: ജില്ലയിലെ വികസന പദ്ധതികളും പ്രധാന സംഭവവികാസങ്ങളും തത്സമയം
           </h1>
           
           <div class="video-metrics-bar">
             <span class="video-views-count">
-              342,850 views &bull; Premiered 2 days ago &bull; Digital Art & Animation
+              🔴 14,850 ആളുകൾ തത്സമയം കാണുന്നു &bull; കാസർഗോഡ് വിഷൻ ബ്യൂറോ &bull; അപ്‌ഡേറ്റ് ചെയ്തത് തൊട്ടുമുമ്പ്
             </span>
 
             <div class="video-actions-cluster">
               <button type="button" class="action-chip" id="btn-like-video">
-                <span>👍</span> <span id="like-count">18.4K</span>
+                <span>👍</span> <span id="like-count">24.6K</span>
               </button>
               <button type="button" class="action-chip" id="btn-share-page">
-                <span>🔗</span> <span>Share</span>
+                <span>🔗</span> <span>ഷെയർ</span>
               </button>
               <button type="button" class="action-chip" id="btn-save-video">
-                <span>🔖</span> <span>Save</span>
+                <span>🔖</span> <span>സേവ്</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Channel Row -->
+        <!-- Channel / Bureau Row -->
         <div class="channel-row">
           <div class="channel-identity">
-            <div class="channel-avatar">🌌</div>
+            <div class="channel-avatar" style="background: linear-gradient(135deg, #e00000, #7f1d1d); border-color: #f87171; box-shadow: 0 0 15px rgba(224, 0, 0, 0.4);">
+              📺
+            </div>
             <div>
               <div class="channel-name">
-                Starlight Motion Studios
-                <span class="verified-icon" title="Verified Creator">✓</span>
+                കേരള വിഷൻ കാസർഗോഡ് ബ്യൂറോ
+                <span class="verified-icon" title="ഔദ്യോഗിക ചാനൽ">✓</span>
               </div>
-              <div class="channel-meta">148K subscribers &bull; Unreal Engine 5 & Blender CGI Productions</div>
+              <div class="channel-meta">420K സബ്സ്ക്രൈബർമാർ &bull; 24x7 വാർത്താ ചാനൽ</div>
             </div>
           </div>
 
           <div class="channel-cta-buttons">
-            <button type="button" class="btn btn-primary btn-watch-demo" id="btn-watch-demo">
-              <span>▶ Play Feature</span>
+            <button type="button" class="btn btn-primary btn-watch-demo" id="btn-watch-demo" style="background: #e00000; border-color: #b91c1c;">
+              <span>▶ ലൈവ് പ്ലേ ചെയ്യുക</span>
             </button>
+            <a href="./demo.html" class="btn btn-secondary btn-sm" style="text-decoration: none; display: flex; align-items: center; gap: 0.35rem;">
+              <span>🛡️ സെക്യൂരിറ്റി ടെസ്റ്റ്</span>
+            </a>
           </div>
         </div>
 
-        <!-- Native Advertisement Banner Card -->
-        <div class="ad-banner-card">
+        <!-- Native Announcement / Sponsored Card -->
+        <div class="ad-banner-card" style="border-left: 4px solid #e00000;">
           <div>
-            <span class="ad-badge">Sponsored &bull; Audio Partner</span>
-            <div class="ad-headline">AuraWave™ Studio Pro Wireless Headphones</div>
-            <div class="ad-copy">40mm custom planar graphene drivers with adaptive active noise cancellation and lossless 24-bit/96kHz spatial audio. Crafted for audio engineers and music creators.</div>
+            <span class="ad-badge" style="background: var(--news-tag-bg); color: var(--news-tag-text);">ജില്ലാ അറിയിപ്പ് &bull; വാർത്താ വിശേഷം</span>
+            <div class="ad-headline">കാസർഗോഡ് വികസന സെമിനാറും തീരദേശ ജാഗ്രതാ നിർദ്ദേശങ്ങളും</div>
+            <div class="ad-copy">ജില്ലാ കളക്ടറേറ്റ് പുറപ്പെടുവിച്ച ഏറ്റവും പുതിയ ഉത്തരവുകളും ദേശീയ പാതാ വികസന പദ്ധതികളുടെ പുരോഗതിയും സംബന്ധിച്ച ഔദ്യോഗിക വാർത്താക്കുറിപ്പ്.</div>
           </div>
-          <a href="#sponsor" class="ad-cta-btn" id="ad-sponsor-link">Explore Specs &rarr;</a>
+          <a href="#details" class="ad-cta-btn" id="ad-sponsor-link" style="color: #f87171;">വിശദാംശങ്ങൾ വായിക്കുക &rarr;</a>
         </div>
 
         <!-- Description Card -->
         <div class="video-description-card">
           <div class="desc-preview" id="desc-preview">
-            <p><strong>Film Overview:</strong></p>
+            <p><strong>വാർത്താ സംഗ്രഹം:</strong></p>
             <p style="margin-top: 0.4rem;">
-              In this groundbreaking 4K CGI cinematic demonstration, explore the distant reaches of Sector 7 alongside exploratory probe Aura-IX as it enters a mysterious celestial nebula. Rendered in real-time utilizing Unreal Engine 5.4 Lumen global illumination, Nanite geometry, and custom volumetric fluid simulations.
+              കാസർഗോഡ് ജില്ലയിലെ ഏറ്റവും പുതിയ പ്രധാന വാർത്തകൾ, ക്രൈം റിപ്പോർട്ടുകൾ, വികസന പദ്ധതികൾ, കായിക-സാംസ്കാരിക വിശേഷങ്ങൾ എന്നിവ ഉൾപ്പെടുത്തി കേരള വിഷൻ ന്യൂസ് സംപ്രേഷണം ചെയ്യുന്ന തത്സമയ വാർത്താ ബുള്ളറ്റിൻ.
             </p>
             <p style="margin-top: 0.5rem;">
-              Directed & Visual Effects by K. Rivers &bull; Original Modular Synth Score by Starlight Audio &bull; Color Pipeline: ACEScc DaVinci Resolve Studio.
+              പ്രധാന കേന്ദ്രങ്ങൾ: കാസർഗോഡ് ടൗൺ &bull; കാഞ്ഞങ്ങാട് &bull; നീലേശ്വരം &bull; ചെറുവത്തൂർ &bull; മഞ്ചേശ്വരം &bull; ഉപ്പള &bull; തൃക്കരിപ്പൂർ.
             </p>
             <p style="margin-top: 0.5rem; color: #94a3b8;">
-              <strong>Chapters:</strong> 00:00 Sector 7 Entry &bull; 00:48 Approaching the Nebula Anomaly &bull; 01:36 Volumetric Cloud Penetration &bull; 02:24 Planetary Horizon Alignment &bull; 03:12 Credits & Production Teaser.
+              <strong>വാർത്താ വിഭാഗങ്ങൾ:</strong> 00:00 കാസർഗോഡ് ജില്ലാ ഹെഡ്‌ലൈൻസ് &bull; 01:15 വിദ്യാർത്ഥി പ്രതിഷേധം റിപ്പോർട്ട് &bull; 02:40 കാലാവസ്ഥാ മുന്നറിയിപ്പ് &bull; 03:10 വികസന പദ്ധതി വിശകലനം.
             </p>
           </div>
-          <button type="button" class="desc-toggle-btn" id="btn-desc-toggle">Show more</button>
+          <button type="button" class="desc-toggle-btn" id="btn-desc-toggle" style="color: #f87171;">കൂടുതൽ കാണിക്കുക</button>
+        </div>
+
+        <!-- Regional Kasaragod News Feed Grid -->
+        <div class="regional-news-header">
+          <div class="regional-news-title">കാസർഗോഡ് പ്രധാന വാർത്തകൾ (Kasaragod Headlines)</div>
+          <a href="https://www.keralavisionnews.com/news/district/kasaragod" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-size: 0.8rem; text-decoration: none; font-weight: 600;">
+            എല്ലാം കാണുക &rarr;
+          </a>
+        </div>
+
+        <div class="news-articles-grid">
+
+          <!-- News Card 1 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #3f1010, #1a0808);">
+              <span class="thumb-tag">വിദ്യാഭ്യാസം</span>
+              <span style="font-size: 3rem;">🎓</span>
+              <span class="thumb-time">ഇന്ന്</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>കാസർഗോഡ് ബ്യൂറോ</span>
+                <span>1 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                ദേശീയ സെമിനാറിനിടെ പ്രതിഷേധം; വിദ്യാര്‍ത്ഥികള്‍ക്കെതിരെ കേസ്
+              </h2>
+              <p class="news-card-snippet">
+                കാസർഗോഡ് ഗവൺമെന്റ് കോളേജിൽ നടന്ന ദേശീയ സെമിനാറിനിടെ ഉണ്ടായ പ്രതിഷേധ സംഭവത്തിൽ കണ്ടാലറിയാവുന്ന വിദ്യാർത്ഥികൾക്കെതിരെ പോലീസ് കേസെടുത്തു.
+              </p>
+              <div class="news-card-footer">
+                <span>08-10-2026</span>
+                <a href="#article-1" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- News Card 2 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #1e1b4b, #0f172a);">
+              <span class="thumb-tag">അപകടം</span>
+              <span style="font-size: 3rem;">⚡</span>
+              <span class="thumb-time">ഇന്നലെ</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>കാഞ്ഞങ്ങാട്</span>
+                <span>1 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                ഭാര്യവീട്ടിൽ നിന്ന് ബൈക്കിൽ തിരിച്ചുവരവേ യുവാവിന് മിന്നലേറ്റു, ആശുപത്രിയിലെത്തിച്ചെങ്കിലും മരിച്ചു
+              </h2>
+              <p class="news-card-snippet">
+                മഴയ്ക്കൊപ്പം ശക്തമായ ഇടിമിന്നലിൽ യുവാവിന് ദാരുണാന്ത്യം. നാട്ടുകാർ ഉടൻ ആശുപത്രിയിലെത്തിച്ചെങ്കിലും ജീവൻ രക്ഷിക്കാനായില്ല.
+              </p>
+              <div class="news-card-footer">
+                <span>07-10-2026</span>
+                <a href="#article-2" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- News Card 3 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #064e3b, #022c22);">
+              <span class="thumb-tag">രാഷ്ട്രീയം</span>
+              <span style="font-size: 3rem;">📢</span>
+              <span class="thumb-time">3 ദിവസം മുൻപ്</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>തൃക്കരിപ്പൂർ</span>
+                <span>1 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                മന്ത്രി ഒ ജെ ജനീഷിനെ വീണ്ടും തടഞ്ഞ് DYFI, വഴിയൊരുക്കി മന്ത്രിയെ തോളിലേറ്റി യൂത്ത് കോൺഗ്രസ് സ്വീകരണം
+              </h2>
+              <p class="news-card-snippet">
+                തൃക്കരിപ്പൂരിൽ പരിപാടിക്കെത്തിയ മന്ത്രിക്ക് നേരെ കരിങ്കൊടി പ്രതിഷേധം. പോലീസും യൂത്ത് കോൺഗ്രസ് പ്രവർത്തകരും ചേർന്ന് വഴിയൊരുക്കി.
+              </p>
+              <div class="news-card-footer">
+                <span>01-10-2026</span>
+                <a href="#article-3" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- News Card 4 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #451a03, #1c0a00);">
+              <span class="thumb-tag">ക്രൈം</span>
+              <span style="font-size: 3rem;">🚨</span>
+              <span class="thumb-time">കഴിഞ്ഞ ആഴ്ച</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>കാലിക്കടവ്</span>
+                <span>2 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                കാലിക്കടവ് എംഡിഎംഎ കടത്ത്: മുഖ്യപ്രതിയായ വിദേശപൗരന്‍ യുപിയില്‍ പിടിയില്‍
+              </h2>
+              <p class="news-card-snippet">
+                കാസർഗോഡ് കേന്ദ്രീകരിച്ച് പ്രവർത്തിക്കുന്ന ലഹരിക്കടത്ത് ശൃംഖലയിലെ മുഖ്യകണ്ണിയായ നൈജീരിയൻ സ്വദേശിയെ ഉത്തർപ്രദേശിൽ നിന്ന് കാസർഗോഡ് പ്രത്യേക അന്വേഷണ സംഘം അറസ്റ്റ് ചെയ്തു.
+              </p>
+              <div class="news-card-footer">
+                <span>30-09-2026</span>
+                <a href="#article-4" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- News Card 5 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+              <span class="thumb-tag">പ്രാദേശികം</span>
+              <span style="font-size: 3rem;">📰</span>
+              <span class="thumb-time">കഴിഞ്ഞ ആഴ്ച</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>നീലേശ്വരം</span>
+                <span>1 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                യൂത്ത് കോൺഗ്രസ് നേതാവ് സ്വന്തം ഓഫീസിൽ തൂങ്ങിമരിച്ച നിലയിൽ
+              </h2>
+              <p class="news-card-snippet">
+                നീലേശ്വരത്തെ പാർട്ടി ഓഫീസിൽ നേതാവിനെ മരിച്ച നിലയിൽ കണ്ടെത്തി. അസ്വാഭാവിക മരണത്തിന് നീലേശ്വരം പോലീസ് കേസ് രജിസ്റ്റർ ചെയ്തു.
+              </p>
+              <div class="news-card-footer">
+                <span>22-09-2026</span>
+                <a href="#article-5" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- News Card 6 -->
+          <article class="news-article-card">
+            <div class="news-card-thumb" style="background: linear-gradient(135deg, #14532d, #052e16);">
+              <span class="thumb-tag">വികസനം</span>
+              <span style="font-size: 3rem;">🚆</span>
+              <span class="thumb-time">അപ്‌ഡേറ്റ്</span>
+            </div>
+            <div class="news-card-body">
+              <div class="news-meta-row">
+                <span>മഞ്ചേശ്വരം</span>
+                <span>1 min read</span>
+              </div>
+              <h2 class="news-card-headline">
+                കാഞ്ഞങ്ങാട് - മഞ്ചേശ്വരം റെയിൽവേ വികസനം: സർവേ നടപടികൾ അവസാന ഘട്ടത്തിൽ
+              </h2>
+              <p class="news-card-snippet">
+                ജില്ലയിലെ യാത്രാക്ലേശത്തിന് പരിഹാരമായി മൂന്നാം റെയിൽവേ പാതയ്ക്കുള്ള പ്രാരംഭ സർവേ നടപടികൾ അടുത്ത മാസം പൂർത്തിയാകും.
+              </p>
+              <div class="news-card-footer">
+                <span>18-09-2026</span>
+                <a href="#article-6" class="news-read-btn">വായിക്കുക &rarr;</a>
+              </div>
+            </div>
+          </article>
+
         </div>
 
         <!-- Video Comments Section -->
         <section class="comments-section" aria-label="Viewer Comments">
           <div class="comments-header">
-            <span>Comments</span>
-            <span class="comments-count">128</span>
+            <span>പ്രേക്ഷക പ്രതികരണങ്ങൾ (Comments)</span>
+            <span class="comments-count">148</span>
           </div>
 
           <div class="comment-input-row">
             <div class="comment-avatar-mock">👤</div>
-            <input type="text" class="comment-input-field" placeholder="Add a public comment..." aria-label="Add a public comment">
+            <input type="text" class="comment-input-field" placeholder="നിങ്ങളുടെ അഭിപ്രായം രേഖപ്പെടുത്തുക..." aria-label="Add a comment">
           </div>
 
           <div class="comments-list">
             <!-- Comment 1 -->
             <div class="comment-item">
-              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">M</div>
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #e00000, #b91c1c);">R</div>
               <div>
-                <div class="comment-author">Marcus_VFX &bull; <span class="comment-time">2 hours ago</span></div>
-                <div class="comment-body">The volumetric lighting when the probe penetrates the dust cloud is insane! Was this rendered using Unreal 5.4 path tracing or Lumen software ray tracing?</div>
-                <div class="comment-actions"><span>👍 42</span> &bull; <span>Reply</span></div>
+                <div class="comment-author">Ramesh_Kasaragod &bull; <span class="comment-time">1 മണിക്കൂർ മുൻപ്</span></div>
+                <div class="comment-body">കാഞ്ഞങ്ങാട് ബൈപ്പാസ് റോഡ് പണി എത്രയും വേഗം പൂർത്തിയാക്കണം. ഗതാഗതക്കുരുക്ക് വലിയ ബുദ്ധിമുട്ടാണ് ഉണ്ടാക്കുന്നത്.</div>
+                <div class="comment-actions"><span>👍 52</span> &bull; <span>മറുപടി നൽകുക</span></div>
               </div>
             </div>
 
             <!-- Comment 2 -->
             <div class="comment-item">
-              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">E</div>
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">A</div>
               <div>
-                <div class="comment-author">Elena_Composer &bull; <span class="comment-time">4 hours ago</span></div>
-                <div class="comment-body">That analog synth swell that builds around 01:45 gave me goosebumps. Fantastic sound design and spatial audio mixing!</div>
-                <div class="comment-actions"><span>👍 29</span> &bull; <span>Reply</span></div>
+                <div class="comment-author">Ashraf_Nileshwar &bull; <span class="comment-time">3 മണിക്കൂർ മുൻപ്</span></div>
+                <div class="comment-body">തീരദേശ റോഡുകളിൽ രാത്രികാല ലൈറ്റുകൾ സ്ഥാപിക്കാൻ പഞ്ചായത്ത് അധികൃതർ തയ്യാറാകണം. നല്ല വാർത്താ റിപ്പോർട്ട്!</div>
+                <div class="comment-actions"><span>👍 38</span> &bull; <span>മറുപടി നൽകുക</span></div>
               </div>
             </div>
 
             <!-- Comment 3 -->
             <div class="comment-item">
-              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #10b981, #059669);">D</div>
+              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #10b981, #059669);">F</div>
               <div>
-                <div class="comment-author">David_Cine &bull; <span class="comment-time">8 hours ago</span></div>
-                <div class="comment-body">The 2.39:1 widescreen framing and the anamorphic lens flares look completely organic. Stunning color palette!</div>
-                <div class="comment-actions"><span>👍 17</span> &bull; <span>Reply</span></div>
-              </div>
-            </div>
-
-            <!-- Comment 4 -->
-            <div class="comment-item">
-              <div class="comment-avatar-mock" style="background: linear-gradient(135deg, #f59e0b, #d97706);">M</div>
-              <div>
-                <div class="comment-author">Maya_3D &bull; <span class="comment-time">1 day ago</span></div>
-                <div class="comment-body">Lighting and subsurface scattering on the planetary rings are on another level. Can't wait for the full behind-the-scenes breakdown!</div>
-                <div class="comment-actions"><span>👍 14</span> &bull; <span>Reply</span></div>
+                <div class="comment-author">Fathima_Manjeshwar &bull; <span class="comment-time">5 മണിക്കൂർ മുൻപ്</span></div>
+                <div class="comment-body">ചെക്ക്പോസ്റ്റ് പരിശോധന കർശനമാക്കിയത് നല്ല തീരുമാനമാണ്. ലഹരിക്കടത്ത് തടയാൻ കർശന നടപടി തുടരണം.</div>
+                <div class="comment-actions"><span>👍 29</span> &bull; <span>മറുപടി നൽകുക</span></div>
               </div>
             </div>
           </div>
@@ -227,81 +445,92 @@
 
       </div>
 
-      <!-- Sidebar Column: Sponsored Ad & Recommended Videos -->
-      <aside class="video-side-column" aria-label="Up Next & Recommended">
+      <!-- Sidebar Column: Weather Alert, Live TV & Up Next -->
+      <aside class="video-side-column" aria-label="District Updates & Trending">
         
-        <!-- Sidebar Ad Banner -->
-        <div class="sidebar-ad-box">
-          <span class="ad-badge">Promoted</span>
-          <div style="font-size: 0.9rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">LumaLens™ Cinema Optics Kit</div>
-          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.35rem 0 0.75rem;">Capture 2.39:1 widescreen anamorphic cinematography with organic horizontal flares on iPhone & Android.</p>
-          <a href="#sponsor" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none;">View Optics Kit</a>
+        <!-- Kasaragod Weather & Coastal Alert Widget -->
+        <div class="weather-alert-card">
+          <div class="weather-alert-header">
+            <span>⚠️</span>
+            <span>കാലാവസ്ഥാ മുന്നറിയിപ്പ് &bull; കാസർഗോഡ് തീരം</span>
+          </div>
+          <p class="weather-alert-desc">
+            കാസർഗോഡ്, കണ്ണൂർ തീരങ്ങളിൽ മണിക്കൂറിൽ 40 മുതൽ 50 കി.മീ വരെ വേഗതയിൽ ശക്തമായ കാറ്റിനും ഉയർന്ന തിരമാലയ്ക്കും സാധ്യത. മത്സ്യത്തൊഴിലാളികൾ ജാഗ്രത പാലിക്കുക.
+          </p>
+        </div>
+
+        <!-- Sidebar Live TV Banner -->
+        <div class="sidebar-ad-box" style="border-color: rgba(220, 38, 38, 0.4);">
+          <span class="ad-badge" style="background: #e00000; color: #ffffff;">കേരള വിഷൻ ലൈവ് ടിവി</span>
+          <div style="font-size: 0.9rem; font-weight: 700; color: #ffffff; margin-top: 0.35rem;">Kerala Vision 24x7 HD ചാനൽ</div>
+          <p style="font-size: 0.775rem; color: var(--text-muted); margin: 0.35rem 0 0.75rem;">നിങ്ങളുടെ ടിവിയിലും മൊബൈലിലും തത്സമയം വാർത്തകൾ കാണുക. മുഴുവൻ സമയ വാർത്താ ചാനൽ.</p>
+          <a href="https://www.keralavisionnews.com/news/district/kasaragod" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%; text-decoration: none; text-align: center;">വെബ്സൈറ്റ് സന്ദർശിക്കുക</a>
         </div>
 
         <div class="sidebar-header">
-          <span>📺</span>
-          <span>Up Next</span>
+          <span>🔥</span>
+          <span>കാസർഗോഡ് ട്രെൻഡിംഗ് വാർത്തകൾ</span>
         </div>
 
         <div class="sidebar-cards-list">
           
           <!-- Video 1 -->
           <div class="video-card-mini" id="mini-card-1">
-            <div class="mini-thumb mini-thumb-gradient-1">
-              <span style="font-size: 1.5rem;">🎬</span>
-              <span class="mini-duration">05:14</span>
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #7f1d1d, #991b1b);">
+              <span style="font-size: 1.5rem;">🚨</span>
+              <span class="mini-duration">03:42</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title">Behind the Scenes: Photorealistic Volumetric Lighting in Unreal Engine 5</div>
-              <div class="mini-meta">Starlight Studios &bull; 94K views</div>
+              <div class="mini-title">കാസർഗോഡ് അതിർത്തിയിൽ പ്രത്യേക പോലീസ് പരിശോധന</div>
+              <div class="mini-meta">കാസർഗോഡ് ബ്യൂറോ &bull; 42K views</div>
             </div>
           </div>
 
           <!-- Video 2 -->
           <div class="video-card-mini" id="mini-card-2">
-            <div class="mini-thumb mini-thumb-gradient-2">
-              <span style="font-size: 1.5rem;">🎵</span>
-              <span class="mini-duration">04:02</span>
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #1e3a8a, #0369a1);">
+              <span style="font-size: 1.5rem;">🏖️</span>
+              <span class="mini-duration">04:18</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title">Synthesizing Future Worlds: Modular Ambient Sound Design</div>
-              <div class="mini-meta">Sonic Lab &bull; 48K views</div>
+              <div class="mini-title">ബേക്കൽ കോട്ട വിനോദസഞ്ചാര പദ്ധതിക്ക് കേന്ദ്ര ഫണ്ട് അനുമതി</div>
+              <div class="mini-meta">വിനോദസഞ്ചാരം &bull; 68K views</div>
             </div>
           </div>
 
           <!-- Video 3 -->
           <div class="video-card-mini" id="mini-card-3">
-            <div class="mini-thumb mini-thumb-gradient-3">
-              <span style="font-size: 1.5rem;">🌄</span>
-              <span class="mini-duration">06:30</span>
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #065f46, #047857);">
+              <span style="font-size: 1.5rem;">🌾</span>
+              <span class="mini-duration">02:50</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title">Desert Horizons: 8K Anamorphic Drone Cinematography & Color Grading</div>
-              <div class="mini-meta">Aerial Cinema &bull; 120K views</div>
+              <div class="mini-title">നീലേശ്വരത്ത് ജൈവ നെൽക്കൃഷി കൊയ്ത്തുത്സവം തുടങ്ങി</div>
+              <div class="mini-meta">കാർഷികം &bull; 31K views</div>
             </div>
           </div>
 
           <!-- Video 4 -->
           <div class="video-card-mini" id="mini-card-4">
-            <div class="mini-thumb mini-thumb-gradient-4">
-              <span style="font-size: 1.5rem;">✨</span>
-              <span class="mini-duration">03:18</span>
+            <div class="mini-thumb" style="background: linear-gradient(135deg, #701a75, #86198f);">
+              <span style="font-size: 1.5rem;">🎭</span>
+              <span class="mini-duration">05:12</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title">Liquid Metal & Particle Simulation Breakdown in Blender 4.2</div>
-              <div class="mini-meta">RenderLab &bull; 62K views</div>
+              <div class="mini-title">തെയ്യം സീസൺ ആരംഭം: കാസർഗോഡ് കാവുകളിൽ ഭക്തിസാന്ദ്രമായ ഒരുക്കങ്ങൾ</div>
+              <div class="mini-meta">സംസ്കാരം &bull; 95K views</div>
             </div>
           </div>
 
           <!-- Console Link Card -->
-          <a href="./admin.html" class="video-card-mini" style="background: rgba(30, 41, 59, 0.3); border-color: rgba(255, 255, 255, 0.1);">
+          <a href="./admin.html" class="video-card-mini" style="background: rgba(30, 41, 59, 0.4); border-color: rgba(255, 255, 255, 0.1);">
             <div class="mini-thumb" style="background: linear-gradient(135deg, #1e293b, #334155);">
               <span style="font-size: 1.5rem;">⚙️</span>
               <span class="mini-duration">Console</span>
             </div>
             <div class="mini-info">
-              <div class="mini-title" style="color: #cbd5e1;">Technical Console</div>
-              <div class="mini-meta">Manage media feeds and system telemetry &rarr;</div>
+              <div class="mini-title" style="color: #cbd5e1;">ടെക്നിക്കൽ കൺസോൾ (Admin)</div>
+              <div class="mini-meta">മാനേജ്‌മെന്റ് & ടെലിമെട്രി നിയന്ത്രണം &rarr;</div>
             </div>
           </a>
 
@@ -313,17 +542,18 @@
 
   <!-- Toast Notification -->
   <div id="toast-notification" class="notice notice-success" style="position: fixed; bottom: 20px; right: 20px; z-index: 999; display: none; box-shadow: var(--shadow-lg); transition: opacity 0.3s ease;">
-    <span id="toast-text">Link copied to clipboard!</span>
+    <span id="toast-text">ലിങ്ക് ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി!</span>
   </div>
 
   <!-- Footer -->
   <footer class="app-footer">
     <p>
-      NovaPulse Media &bull; Independent Cinema & Motion Design Platform &bull; Built with HTML5 Canvas, CSS, and Modern JavaScript
+      കേരള വിഷൻ ന്യൂസ് &bull; കാസർഗോഡ് ജില്ലാ ഓൺലൈൻ വാർത്താ പോർട്ടൽ &bull; Kasaragod Vision 24x7 News Media
     </p>
     <p style="margin-top: 0.5rem; font-size: 0.75rem;">
-      <a href="./demo.html" style="color: #64748b; text-decoration: none;">Interactive Simulation Lab</a> &bull;
-      <a href="./admin.html" style="color: #64748b; text-decoration: none;">Console</a> &bull;
+      <a href="https://www.keralavisionnews.com/news/district/kasaragod" target="_blank" rel="noopener noreferrer" style="color: #64748b; text-decoration: none;">ഔദ്യോഗിക വെബ്സൈറ്റ്</a> &bull;
+      <a href="./demo.html" style="color: #64748b; text-decoration: none;">സെക്യൂരിറ്റി അവയർനെസ്സ് ലാബ്</a> &bull;
+      <a href="./admin.html" style="color: #64748b; text-decoration: none;">അഡ്മിൻ കൺസോൾ</a> &bull;
       Backend on Render &bull; Frontend on GitHub Pages
     </p>
   </footer>

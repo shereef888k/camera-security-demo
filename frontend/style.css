@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Malayalam:wght@400;500;600;700;800;900&family=Roboto:wght@400;500;700;900&display=swap');
+
 /* ==========================================================================
-   Camera Security Demonstration - Design System & Styles
-   Aesthetic: Dark Navy & Charcoal Security Console with Blue Accents
+   Kerala Vision News / Kasaragod News Portal & Security Demonstration
+   Aesthetic: Premium Kerala News Media (Red #e00000, Slate Navy & White)
    ========================================================================== */
 
 :root {
-  /* Color Palette - Security Dark Theme */
+  /* Color Palette - Security & Editorial News Dark Theme */
   --bg-primary: #0a0f1d;
   --bg-secondary: #0f172a;
   --bg-card: #162036;
@@ -12,7 +14,14 @@
   --bg-input: #0b1325;
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.16);
-  --border-active: rgba(59, 130, 246, 0.5);
+  --border-active: rgba(224, 0, 0, 0.5);
+
+  /* News Editorial Colors */
+  --accent-news: #e00000;
+  --accent-news-hover: #b80000;
+  --accent-news-glow: rgba(224, 0, 0, 0.35);
+  --news-tag-bg: rgba(224, 0, 0, 0.18);
+  --news-tag-text: #ff4d4d;
 
   /* Brand & Accents */
   --accent-primary: #3b82f6;
@@ -73,10 +82,10 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Noto Sans Malayalam', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-main);
-  line-height: 1.5;
+  line-height: 1.6;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -1888,5 +1897,415 @@ body {
   color: var(--text-dim);
   margin-top: 0.15rem;
 }
+
+/* ==========================================================================
+   Kerala Vision News / Kasaragod News Portal Styling
+   ========================================================================== */
+
+/* News Portal Top Metadata Bar */
+.news-top-bar {
+  background: #060b14;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.775rem;
+  color: #94a3b8;
+  padding: 0.45rem 0;
+}
+
+.news-top-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.news-top-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.edition-badge {
+  background: var(--news-tag-bg);
+  color: var(--news-tag-text);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  border: 1px solid rgba(224, 0, 0, 0.3);
+  letter-spacing: 0.3px;
+}
+
+.weather-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #cbd5e1;
+}
+
+/* Breaking News Ticker Bar */
+.breaking-news-strip {
+  background: linear-gradient(90deg, #990000 0%, #e00000 35%, #880000 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(224, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
+  z-index: 40;
+}
+
+.breaking-label {
+  background: #ffffff;
+  color: #e00000;
+  font-weight: 900;
+  font-size: 0.75rem;
+  padding: 0.45rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 3px 0 8px rgba(0, 0, 0, 0.25);
+  position: relative;
+  z-index: 2;
+}
+
+.live-pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e00000;
+  animation: pulseNews 1.4s infinite;
+}
+
+@keyframes pulseNews {
+  0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(224, 0, 0, 0.7); }
+  70% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 7px rgba(224, 0, 0, 0); }
+  100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(224, 0, 0, 0); }
+}
+
+.breaking-marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+  flex-grow: 1;
+  padding-left: 1rem;
+}
+
+.breaking-marquee-track {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marqueeTicker 32s linear infinite;
+  font-size: 0.825rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.breaking-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeTicker {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+.ticker-item {
+  margin-right: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ticker-bullet {
+  color: #ffd700;
+}
+
+/* Category Navigation Bar */
+.category-nav-bar {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid var(--border-medium);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.category-nav-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.category-nav-list {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  list-style: none;
+}
+
+.cat-nav-item a {
+  display: block;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.cat-nav-item a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.cat-nav-item.active a {
+  background: #e00000;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(224, 0, 0, 0.4);
+}
+
+/* Kerala Vision Brand Logo */
+.kv-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.kv-logo-badge {
+  background: linear-gradient(135deg, #e00000, #990000);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(224, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.kv-logo-text-top {
+  font-size: 0.65rem;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+.kv-logo-text-bottom {
+  font-size: 0.85rem;
+  line-height: 1;
+  font-weight: 900;
+  color: #ffd700;
+}
+
+.kv-brand-text .main-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.kv-brand-text .main-name span.live-indicator {
+  background: #e00000;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.kv-brand-text .sub-name {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Regional News Grid & Cards */
+.regional-news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e00000;
+}
+
+.regional-news-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.regional-news-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background: #e00000;
+  border-radius: 2px;
+}
+
+.news-articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.news-article-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.news-article-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(224, 0, 0, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(224, 0, 0, 0.15);
+}
+
+.news-card-thumb {
+  height: 160px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.thumb-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #e00000;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.thumb-time {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.news-card-body {
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.news-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.news-card-headline {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: #ffffff;
+  margin-bottom: 0.65rem;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.news-article-card:hover .news-card-headline {
+  color: #f87171;
+}
+
+.news-card-snippet {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.news-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+}
+
+.news-read-btn {
+  color: #38bdf8;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.news-read-btn:hover {
+  text-decoration: underline;
+  color: #60a5fa;
+}
+
+/* Kasaragod Weather & Coastal Alert Widget */
+.weather-alert-card {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.weather-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #f87171;
+  margin-bottom: 0.4rem;
+}
+
+.weather-alert-desc {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
 
 

@@ -19,7 +19,7 @@
   const videoTotalSeconds = 222; // 03:42
   let videoAnimFrameId = null;
   let isVideoMuted = false;
-  let likeCount = 18420;
+  let likeCount = 24650;
   let hasLiked = false;
   let canvasCtx = null;
 
@@ -182,7 +182,7 @@
       adSponsorLink.addEventListener('click', (e) => {
         e.preventDefault();
         recordAwarenessEvent('demo_button_clicked', { source: 'ad_banner_cta' });
-        showToast('🎧 AuraWave™ Pro: 40mm planar graphene drivers, 48hr battery, lossless spatial audio.');
+        showToast('📰 കാസർഗോഡ് ജില്ലാ കളക്ടറേറ്റ് ഔദ്യോഗിക വാർത്താക്കുറിപ്പ് ലോഡ് ചെയ്യുന്നു...');
       });
     }
     if (sidebarDemoLink) {
@@ -211,7 +211,7 @@
     miniCards.forEach((card) => {
       card.addEventListener('click', () => {
         const title = card.querySelector('.mini-title')?.textContent || 'Related Video';
-        showToast(`Loading: ${title}`);
+        showToast(`വാർത്ത ലോഡ് ചെയ്യുന്നു: ${title}`);
         videoPlayerWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
         startVideoPlayback();
       });
@@ -233,9 +233,9 @@
         const shareUrl = window.location.href;
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(shareUrl);
-          showToast('🔗 Page link copied to clipboard!');
+          showToast('🔗 വാർത്താ ലിങ്ക് ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി!');
         } else {
-          showToast('Share: ' + shareUrl);
+          showToast('ഷെയർ: ' + shareUrl);
         }
       });
     }
@@ -244,7 +244,7 @@
     if (btnDescToggle && descPreview) {
       btnDescToggle.addEventListener('click', () => {
         const isExpanded = descPreview.classList.toggle('expanded');
-        btnDescToggle.textContent = isExpanded ? 'Show less' : 'Show more';
+        btnDescToggle.textContent = isExpanded ? 'കുറച്ച് കാണിക്കുക' : 'കൂടുതൽ കാണിക്കുക';
       });
     }
 
@@ -310,17 +310,9 @@
     videoTimecode.textContent = `${formatTime(videoCurrentSeconds)} / ${formatTime(videoTotalSeconds)}`;
   }
 
-  function initStarfield(w, h) {
-    stars = [];
-    for (let i = 0; i < NUM_STARS; i++) {
-      stars.push({
-        x: (Math.random() - 0.5) * w * 2.5,
-        y: (Math.random() - 0.5) * h * 2.5,
-        z: Math.random() * 1000 + 1,
-        color: ['#38bdf8', '#818cf8', '#c084fc', '#ffffff', '#34d399'][Math.floor(Math.random() * 5)]
-      });
-    }
-  }
+  // News Broadcast Animation Elements
+  const tickerMalayalamText = "🔴 ബ്രേക്കിംഗ് ന്യൂസ്: ദേശീയ സെമിനാറിനിടെ പ്രതിഷേധം; വിദ്യാര്‍ത്ഥികള്‍ക്കെതിരെ കേസ്  •  ഭാര്യവീട്ടിൽ നിന്ന് ബൈക്കിൽ തിരിച്ചുവരവേ യുവാവിന് മിന്നലേറ്റു, ആശുപത്രിയിലെത്തിച്ചെങ്കിലും മരിച്ചു  •  മന്ത്രി ഒ ജെ ജനീഷിനെ തടഞ്ഞ് DYFI; യൂത്ത് കോൺഗ്രസ് സ്വീകരണം  •  കാലിക്കടവ് എംഡിഎംഎ കടത്ത്: മുഖ്യപ്രതിയായ വിദേശപൗരന്‍ യുപിയില്‍ പിടിയില്‍  •  കാഞ്ഞങ്ങാട് റെയിൽവേ വികസനം: സർവേ നടപടികൾ വേഗത്തിലാക്കി  •  ";
+  let tickerOffset = 0;
 
   function renderCinematicVideoFrame(timestamp) {
     if (!canvasCtx || !interactiveVideoCanvas) return;
@@ -328,223 +320,244 @@
     const h = interactiveVideoCanvas.height;
     const scale = w / 800;
 
-    if (stars.length === 0) {
-      initStarfield(w, h);
+    // 1. Television Broadcast Studio Background (Dark Burgundy & Slate Navy)
+    const bgGrad = canvasCtx.createRadialGradient(w * 0.5, h * 0.4, 20 * scale, w * 0.5, h * 0.5, w * 0.75);
+    bgGrad.addColorStop(0, '#2b0707');
+    bgGrad.addColorStop(0.4, '#130514');
+    bgGrad.addColorStop(0.8, '#080d1a');
+    bgGrad.addColorStop(1, '#02050b');
+    canvasCtx.fillStyle = bgGrad;
+    canvasCtx.fillRect(0, 0, w, h);
+
+    // 2. Studio Background Grid & Perspective Floor
+    canvasCtx.strokeStyle = 'rgba(224, 0, 0, 0.08)';
+    canvasCtx.lineWidth = 1 * scale;
+    const gridCols = 16;
+    for (let i = 0; i <= gridCols; i++) {
+      const gx = (w / gridCols) * i;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(gx, 0);
+      canvasCtx.lineTo(gx, h);
+      canvasCtx.stroke();
+    }
+    const gridRows = 10;
+    for (let j = 0; j <= gridRows; j++) {
+      const gy = (h / gridRows) * j;
+      canvasCtx.beginPath();
+      canvasCtx.moveTo(0, gy);
+      canvasCtx.lineTo(w, gy);
+      canvasCtx.stroke();
     }
 
-    // 1. Deep space background
-    canvasCtx.fillStyle = '#030712';
-    canvasCtx.fillRect(0, 0, w, h);
+    // 3. Central 3D Rotating News Globe & Concentric Broadcast Radar Rings
+    const centerX = w * 0.5;
+    const centerY = h * 0.44;
+    const globeRadius = 85 * scale;
+    const angle = (timestamp * 0.0006) % (Math.PI * 2);
 
-    // 2. Cosmic Nebulae (Swirling atmospheric color fields)
-    const neb1X = w * 0.35 + Math.sin(timestamp * 0.0004) * 50 * scale;
-    const neb1Y = h * 0.45 + Math.cos(timestamp * 0.0005) * 40 * scale;
-    const nebGrad1 = canvasCtx.createRadialGradient(neb1X, neb1Y, 15 * scale, neb1X, neb1Y, 320 * scale);
-    nebGrad1.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
-    nebGrad1.addColorStop(0.5, 'rgba(139, 92, 246, 0.15)');
-    nebGrad1.addColorStop(1, 'transparent');
-    canvasCtx.fillStyle = nebGrad1;
-    canvasCtx.fillRect(0, 0, w, h);
-
-    const neb2X = w * 0.65 + Math.cos(timestamp * 0.0003) * 60 * scale;
-    const neb2Y = h * 0.52 + Math.sin(timestamp * 0.0004) * 45 * scale;
-    const nebGrad2 = canvasCtx.createRadialGradient(neb2X, neb2Y, 20 * scale, neb2X, neb2Y, 350 * scale);
-    nebGrad2.addColorStop(0, 'rgba(6, 182, 212, 0.32)');
-    nebGrad2.addColorStop(0.6, 'rgba(14, 165, 233, 0.1)');
-    nebGrad2.addColorStop(1, 'transparent');
-    canvasCtx.fillStyle = nebGrad2;
-    canvasCtx.fillRect(0, 0, w, h);
-
-    // 3. Central Celestial Body / Exoplanetary Horizon
-    const planetX = w * 0.5;
-    const planetY = h * 0.46;
-    const planetRadius = 75 * scale;
-
-    // Atmospheric rim glow
-    const glowGrad = canvasCtx.createRadialGradient(planetX, planetY, planetRadius * 0.9, planetX, planetY, planetRadius * 1.6);
-    glowGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
-    glowGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.18)');
+    // Broadcast Outer Glow
+    const glowGrad = canvasCtx.createRadialGradient(centerX, centerY, globeRadius * 0.6, centerX, centerY, globeRadius * 1.8);
+    glowGrad.addColorStop(0, 'rgba(224, 0, 0, 0.35)');
+    glowGrad.addColorStop(0.5, 'rgba(185, 28, 28, 0.12)');
     glowGrad.addColorStop(1, 'transparent');
     canvasCtx.fillStyle = glowGrad;
     canvasCtx.beginPath();
-    canvasCtx.arc(planetX, planetY, planetRadius * 1.6, 0, Math.PI * 2);
+    canvasCtx.arc(centerX, centerY, globeRadius * 1.8, 0, Math.PI * 2);
     canvasCtx.fill();
 
-    // Planet Sphere with terminator shadow
-    const planetGrad = canvasCtx.createRadialGradient(
-      planetX - planetRadius * 0.35,
-      planetY - planetRadius * 0.35,
-      planetRadius * 0.1,
-      planetX,
-      planetY,
-      planetRadius
-    );
-    planetGrad.addColorStop(0, '#38bdf8');
-    planetGrad.addColorStop(0.4, '#1e3a8a');
-    planetGrad.addColorStop(0.8, '#0f172a');
-    planetGrad.addColorStop(1, '#020617');
-    canvasCtx.fillStyle = planetGrad;
-    canvasCtx.beginPath();
-    canvasCtx.arc(planetX, planetY, planetRadius, 0, Math.PI * 2);
-    canvasCtx.fill();
-
-    // Orbital Rings with tilt
-    canvasCtx.save();
-    canvasCtx.translate(planetX, planetY);
-    canvasCtx.rotate(-22 * Math.PI / 180);
-    canvasCtx.beginPath();
-    canvasCtx.ellipse(0, 0, planetRadius * 2.2, planetRadius * 0.5, 0, 0, Math.PI * 2);
-    canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-    canvasCtx.lineWidth = 3 * scale;
-    canvasCtx.stroke();
-
-    canvasCtx.beginPath();
-    canvasCtx.ellipse(0, 0, planetRadius * 2.5, planetRadius * 0.58, 0, 0, Math.PI * 2);
-    canvasCtx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
-    canvasCtx.lineWidth = 1.5 * scale;
-    canvasCtx.stroke();
-    canvasCtx.restore();
-
-    // 4. Warp starfield streaming outward
-    const speed = isVideoPlaying ? 5 : 0.8;
-    const fov = 400 * scale;
-    for (let i = 0; i < stars.length; i++) {
-      const s = stars[i];
-      s.z -= speed;
-      if (s.z <= 10) {
-        s.z = 1000;
-        s.x = (Math.random() - 0.5) * w * 2.5;
-        s.y = (Math.random() - 0.5) * h * 2.5;
-      }
-
-      const k = fov / s.z;
-      const px = s.x * k + w / 2;
-      const py = s.y * k + h / 2;
-
-      if (px >= 0 && px < w && py >= 0 && py < h) {
-        const starSize = Math.max(0.8, (1 - s.z / 1000) * 3.5 * scale);
-        canvasCtx.fillStyle = s.color;
-        canvasCtx.beginPath();
-        canvasCtx.arc(px, py, starSize, 0, Math.PI * 2);
-        canvasCtx.fill();
-
-        // Warp streak tail
-        if (isVideoPlaying && s.z < 850) {
-          const prevK = fov / (s.z + speed * 3);
-          const prevX = s.x * prevK + w / 2;
-          const prevY = s.y * prevK + h / 2;
-          canvasCtx.strokeStyle = s.color;
-          canvasCtx.globalAlpha = Math.max(0.1, 1 - s.z / 1000);
-          canvasCtx.lineWidth = starSize * 0.8;
-          canvasCtx.beginPath();
-          canvasCtx.moveTo(px, py);
-          canvasCtx.lineTo(prevX, prevY);
-          canvasCtx.stroke();
-          canvasCtx.globalAlpha = 1.0;
-        }
-      }
+    // Concentric Radar Rings
+    for (let r = 1; r <= 3; r++) {
+      canvasCtx.save();
+      canvasCtx.translate(centerX, centerY);
+      canvasCtx.rotate(angle * (r % 2 === 0 ? 1 : -1) * 0.7);
+      canvasCtx.beginPath();
+      canvasCtx.ellipse(0, 0, globeRadius * (1 + r * 0.35), globeRadius * (0.35 + r * 0.12), 0, 0, Math.PI * 2);
+      canvasCtx.strokeStyle = r === 1 ? 'rgba(224, 0, 0, 0.45)' : 'rgba(56, 189, 248, 0.25)';
+      canvasCtx.lineWidth = (2 - r * 0.3) * scale;
+      canvasCtx.stroke();
+      canvasCtx.restore();
     }
 
-    // 5. Dynamic Audio Spectrum Visualizer at bottom
-    const barCount = 38;
-    const barW = 7 * scale;
-    const gap = 4 * scale;
-    const spectrumW = barCount * (barW + gap);
-    const startX = (w - spectrumW) / 2;
-    const baseY = h - 35 * scale;
+    // Central Studio Sphere / Digital News Earth
+    const sphereGrad = canvasCtx.createRadialGradient(
+      centerX - globeRadius * 0.3,
+      centerY - globeRadius * 0.3,
+      globeRadius * 0.1,
+      centerX,
+      centerY,
+      globeRadius
+    );
+    sphereGrad.addColorStop(0, '#ff4d4d');
+    sphereGrad.addColorStop(0.3, '#b91c1c');
+    sphereGrad.addColorStop(0.7, '#1e293b');
+    sphereGrad.addColorStop(1, '#020617');
+    canvasCtx.fillStyle = sphereGrad;
+    canvasCtx.beginPath();
+    canvasCtx.arc(centerX, centerY, globeRadius, 0, Math.PI * 2);
+    canvasCtx.fill();
+
+    // Studio Meridians / Latitude Grid on Sphere
+    canvasCtx.save();
+    canvasCtx.beginPath();
+    canvasCtx.arc(centerX, centerY, globeRadius, 0, Math.PI * 2);
+    canvasCtx.clip();
+
+    canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    canvasCtx.lineWidth = 1 * scale;
+    for (let m = -2; m <= 2; m++) {
+      const shift = ((timestamp * 0.04) % 100) / 100;
+      const mx = centerX + (m + shift) * (globeRadius * 0.75);
+      canvasCtx.beginPath();
+      canvasCtx.ellipse(mx, centerY, globeRadius * 0.35, globeRadius * 0.98, 0, 0, Math.PI * 2);
+      canvasCtx.stroke();
+    }
+    canvasCtx.restore();
+
+    // News Studio Title Graphic over Sphere
+    canvasCtx.fillStyle = '#ffffff';
+    canvasCtx.font = `900 ${15 * scale}px sans-serif`;
+    canvasCtx.textAlign = 'center';
+    canvasCtx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+    canvasCtx.shadowBlur = 8;
+    canvasCtx.fillText('KASARAGOD 24x7', centerX, centerY - 8 * scale);
+    canvasCtx.fillStyle = '#fca5a5';
+    canvasCtx.font = `bold ${10 * scale}px sans-serif`;
+    canvasCtx.fillText('തത്സമയ സംപ്രേഷണം', centerX, centerY + 12 * scale);
+    canvasCtx.shadowBlur = 0;
+
+    // 4. Studio Audio Spectrum Visualizer (Live Broadcaster Voice Level)
+    const barCount = 42;
+    const barW = 6 * scale;
+    const gap = 3.5 * scale;
+    const totalSpectrumW = barCount * (barW + gap);
+    const startX = (w - totalSpectrumW) / 2;
+    const baseY = h - 68 * scale;
 
     for (let i = 0; i < barCount; i++) {
       let amp = 0;
       if (isVideoPlaying && !isVideoMuted) {
-        const wave1 = Math.sin(timestamp * 0.005 + i * 0.32);
-        const wave2 = Math.cos(timestamp * 0.002 + i * 0.18);
-        const wave3 = Math.sin(timestamp * 0.008 + i * 0.5);
+        const wave1 = Math.sin(timestamp * 0.007 + i * 0.35);
+        const wave2 = Math.cos(timestamp * 0.003 + i * 0.22);
+        const wave3 = Math.sin(timestamp * 0.012 + i * 0.6);
         amp = Math.abs(wave1 * 0.5 + wave2 * 0.3 + wave3 * 0.2);
+      } else {
+        amp = Math.sin(timestamp * 0.002 + i * 0.2) * 0.15;
       }
-      const barH = isVideoPlaying ? (8 + amp * 38) * scale : 4 * scale;
+      const barH = isVideoPlaying ? (6 + amp * 34) * scale : 4 * scale;
 
       const barGrad = canvasCtx.createLinearGradient(0, baseY, 0, baseY - barH);
-      barGrad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-      barGrad.addColorStop(0.5, 'rgba(99, 102, 241, 0.85)');
-      barGrad.addColorStop(1, '#c084fc');
+      barGrad.addColorStop(0, '#e00000');
+      barGrad.addColorStop(0.6, '#f87171');
+      barGrad.addColorStop(1, '#ffffff');
 
       canvasCtx.fillStyle = barGrad;
       canvasCtx.fillRect(startX + i * (barW + gap), baseY - barH, barW, barH);
     }
 
-    // 6. Cinema Telemetry & Chapter Title Cards
-    const sec = videoCurrentSeconds;
-    let actTitle = 'ACT I: THE ORION EXPEDITION';
-    let actDesc = 'Scout vessel Aura-IX entering uncharted sector coordinates';
+    // 5. Top Broadcast HUD Bar
+    canvasCtx.fillStyle = 'rgba(6, 11, 20, 0.88)';
+    canvasCtx.fillRect(12 * scale, 12 * scale, w - 24 * scale, 34 * scale);
+    canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    canvasCtx.strokeRect(12 * scale, 12 * scale, w - 24 * scale, 34 * scale);
 
-    if (sec > 48 && sec <= 105) {
-      actTitle = 'ACT II: VOLUMETRIC NEBULA CLOUD';
-      actDesc = 'Ionized gas concentration: 94.2% • Volumetric particle density 4K';
-    } else if (sec > 105 && sec <= 165) {
-      actTitle = 'ACT III: ANCIENT EXOPLANETARY ANCHOR';
-      actDesc = 'Planetary scan initiated • Quantum beacon alignment synchronized';
-    } else if (sec > 165 && sec <= 222) {
-      actTitle = 'ACT IV: LIGHTSPEED JUMP PREPARATION';
-      actDesc = 'Warp core charging: 100% • Departure vector locked to Outer Rim';
-    }
+    // Glowing Live Pill
+    canvasCtx.fillStyle = '#e00000';
+    canvasCtx.beginPath();
+    canvasCtx.roundRect(20 * scale, 18 * scale, 58 * scale, 22 * scale, 4 * scale);
+    canvasCtx.fill();
 
-    // Top Cinematic HUD Banner
-    canvasCtx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-    canvasCtx.fillRect(15 * scale, 15 * scale, w - 30 * scale, 38 * scale);
-    canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-    canvasCtx.strokeRect(15 * scale, 15 * scale, w - 30 * scale, 38 * scale);
+    canvasCtx.fillStyle = '#ffffff';
+    canvasCtx.font = `900 ${10 * scale}px sans-serif`;
+    canvasCtx.textAlign = 'center';
+    canvasCtx.fillText('● LIVE', 49 * scale, 33 * scale);
 
-    canvasCtx.fillStyle = '#38bdf8';
-    canvasCtx.font = `bold ${12 * scale}px sans-serif`;
-    canvasCtx.fillText('🎬 NOVASTREAM CINEMA', 25 * scale, 39 * scale);
+    // Channel name & Bureau
+    canvasCtx.fillStyle = '#ffffff';
+    canvasCtx.font = `bold ${11 * scale}px sans-serif`;
+    canvasCtx.textAlign = 'left';
+    canvasCtx.fillText('KERALA VISION NEWS', 86 * scale, 34 * scale);
 
-    canvasCtx.fillStyle = '#4ade80';
-    canvasCtx.font = `bold ${10 * scale}px sans-serif`;
-    canvasCtx.fillText('4K ULTRA HD 60FPS', 170 * scale, 39 * scale);
+    canvasCtx.fillStyle = '#ffd700';
+    canvasCtx.font = `bold ${9 * scale}px sans-serif`;
+    canvasCtx.fillText('കാസർഗോഡ് ബ്യൂറോ', 230 * scale, 34 * scale);
 
-    canvasCtx.fillStyle = '#94a3b8';
+    // Right side technical telemetry
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+    canvasCtx.fillStyle = '#cbd5e1';
     canvasCtx.font = `${10 * scale}px monospace`;
     canvasCtx.textAlign = 'right';
-    canvasCtx.fillText('HDR10+ • DOLBY ATMOS 7.1.4 • MASTER CUT', w - 25 * scale, 39 * scale);
+    canvasCtx.fillText(`${timeStr} IST • HD 1080P 50FPS`, w - 22 * scale, 34 * scale);
     canvasCtx.textAlign = 'left';
 
-    // Lower Subtitle / Act Banner
-    const bannerW = Math.min(w * 0.8, 540 * scale);
-    const bannerH = 46 * scale;
-    const bannerX = (w - bannerW) / 2;
-    const bannerY = h - 90 * scale;
+    // 6. Realistic Lower Third (L-Band News Banner with Malayalam Scrolling Ticker)
+    const bannerH = 48 * scale;
+    const bannerY = h - 62 * scale;
 
-    canvasCtx.fillStyle = 'rgba(10, 15, 29, 0.85)';
-    canvasCtx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
-    canvasCtx.lineWidth = 1;
+    // Top Tag Bar of Lower Third
+    canvasCtx.fillStyle = '#990000';
+    canvasCtx.fillRect(0, bannerY - 18 * scale, w, 18 * scale);
+    canvasCtx.fillStyle = '#ffffff';
+    canvasCtx.font = `bold ${9 * scale}px sans-serif`;
+    canvasCtx.fillText('🔴 KERALA VISION BREAKING &bull; കാസർഗോഡ് തത്സമയ വാർത്തകൾ', 16 * scale, bannerY - 5 * scale);
+
+    // Main Ticker Bar Background
+    canvasCtx.fillStyle = 'rgba(10, 15, 26, 0.95)';
+    canvasCtx.fillRect(0, bannerY, w, bannerH);
+    canvasCtx.strokeStyle = 'rgba(224, 0, 0, 0.4)';
+    canvasCtx.lineWidth = 1 * scale;
     canvasCtx.beginPath();
-    canvasCtx.roundRect(bannerX, bannerY, bannerW, bannerH, 8 * scale);
-    canvasCtx.fill();
+    canvasCtx.moveTo(0, bannerY);
+    canvasCtx.lineTo(w, bannerY);
     canvasCtx.stroke();
 
-    canvasCtx.fillStyle = '#f8fafc';
-    canvasCtx.font = `bold ${13 * scale}px sans-serif`;
+    // Red Fixed Badge on Left
+    const badgeW = 100 * scale;
+    canvasCtx.fillStyle = '#e00000';
+    canvasCtx.fillRect(0, bannerY, badgeW, bannerH);
+    canvasCtx.fillStyle = '#ffffff';
+    canvasCtx.font = `900 ${11 * scale}px sans-serif`;
     canvasCtx.textAlign = 'center';
-    canvasCtx.fillText(actTitle, w / 2, bannerY + 20 * scale);
-
-    canvasCtx.fillStyle = '#94a3b8';
-    canvasCtx.font = `${10 * scale}px sans-serif`;
-    canvasCtx.fillText(actDesc, w / 2, bannerY + 36 * scale);
+    canvasCtx.fillText('പ്രധാനം', badgeW / 2, bannerY + 22 * scale);
+    canvasCtx.font = `600 ${8 * scale}px sans-serif`;
+    canvasCtx.fillText('FLASH NEWS', badgeW / 2, bannerY + 36 * scale);
     canvasCtx.textAlign = 'left';
+
+    // Scrolling Ticker Text
+    canvasCtx.save();
+    canvasCtx.beginPath();
+    canvasCtx.rect(badgeW + 10 * scale, bannerY, w - badgeW - 15 * scale, bannerH);
+    canvasCtx.clip();
+
+    if (isVideoPlaying) {
+      tickerOffset += 1.2 * scale;
+    }
+
+    canvasCtx.font = `bold ${12 * scale}px 'Noto Sans Malayalam', sans-serif`;
+    canvasCtx.fillStyle = '#ffffff';
+    const textWidth = canvasCtx.measureText(tickerMalayalamText).width;
+    if (tickerOffset > textWidth) {
+      tickerOffset = 0;
+    }
+
+    const drawX = badgeW + 15 * scale - tickerOffset;
+    canvasCtx.fillText(tickerMalayalamText, drawX, bannerY + 28 * scale);
+    canvasCtx.fillText(tickerMalayalamText, drawX + textWidth, bannerY + 28 * scale);
+    canvasCtx.restore();
 
     // 7. Paused Screen Overlay
     if (!isVideoPlaying) {
-      canvasCtx.fillStyle = 'rgba(2, 6, 23, 0.65)';
+      canvasCtx.fillStyle = 'rgba(3, 7, 18, 0.72)';
       canvasCtx.fillRect(0, 0, w, h);
 
-      canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      canvasCtx.font = `bold ${18 * scale}px sans-serif`;
+      canvasCtx.fillStyle = '#ffffff';
+      canvasCtx.font = `bold ${16 * scale}px sans-serif`;
       canvasCtx.textAlign = 'center';
-      canvasCtx.fillText('⏸ PLAYBACK PAUSED', w / 2, h / 2 - 10 * scale);
+      canvasCtx.fillText('⏸ ലൈവ് സ്ട്രീം താൽക്കാലികമായി നിർത്തിവച്ചിരിക്കുന്നു', w / 2, h / 2 - 12 * scale);
 
-      canvasCtx.fillStyle = '#38bdf8';
-      canvasCtx.font = `${12 * scale}px sans-serif`;
-      canvasCtx.fillText('Click player to resume feature', w / 2, h / 2 + 16 * scale);
+      canvasCtx.fillStyle = '#f87171';
+      canvasCtx.font = `${11 * scale}px sans-serif`;
+      canvasCtx.fillText('തുടർന്ന് കാണുവാൻ പ്ലെയറിൽ ക്ലിക്ക് ചെയ്യുക (Click to Resume)', w / 2, h / 2 + 14 * scale);
       canvasCtx.textAlign = 'left';
     }
   }
