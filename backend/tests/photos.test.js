@@ -65,11 +65,13 @@ describe('Photo Submission & Telegram Integration API', () => {
 
     assert.strictEqual(photoRes.status, 200);
     assert.strictEqual(photoRes.body.success, true);
-    assert.strictEqual(photoRes.body.session.status, 'submitted');
+    assert.strictEqual(photoRes.body.session.status, 'active');
+    assert.strictEqual(photoRes.body.session.submissionsCount, 1);
 
-    // 4. Verify DB status updated to 'submitted'
+    // 4. Verify DB status updated to 'active' and submission counted
     const session = db.getSessionById(sessionId);
-    assert.strictEqual(session.status, 'submitted');
+    assert.strictEqual(session.status, 'active');
+    assert.strictEqual(session.submissionsCount, 1);
     assert.ok(session.submittedAt);
   });
 
@@ -108,7 +110,7 @@ describe('Photo Submission & Telegram Integration API', () => {
     assert.strictEqual(session.status, 'created');
   });
 
-  test('POST /api/sessions/:id/photo — Rejects submission if session already submitted (409 Conflict)', async () => {
+  test('POST /api/sessions/:id/photo — Allows multiple photo submissions for the same active session link (200)', async () => {
     // Mock successful telegram
     telegramService.customFetch = async () => ({
       ok: true,
@@ -128,15 +130,59 @@ describe('Photo Submission & Telegram Integration API', () => {
       .post(`/api/sessions/${sessionId}/photo`)
       .attach('photo', TINY_JPEG_BUFFER, 'first.jpg');
     assert.strictEqual(firstRes.status, 200);
+    assert.strictEqual(firstRes.body.submissionsCount, 1);
 
-    // Second submission attempt
+    // Second submission on same active session link
     const secondRes = await request(app)
       .post(`/api/sessions/${sessionId}/photo`)
       .attach('photo', TINY_JPEG_BUFFER, 'second.jpg');
 
-    assert.strictEqual(secondRes.status, 409);
-    assert.strictEqual(secondRes.body.success, false);
-    assert.match(secondRes.body.error, /already been submitted/i);
+    assert.strictEqual(secondRes.status, 200);
+    assert.strictEqual(secondRes.body.success, true);
+    assert.strictEqual(secondRes.body.submissionsCount, 2);
+
+    // Third submission
+    const thirdRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'third.jpg');
+
+    assert.strictEqual(thirdRes.status, 200);
+    assert.strictEqual(thirdRes.body.submissionsCount, 3);
+
+    // Verify DB count
+    assert.strictEqual(db.getSubmissionsCount(sessionId), 3);
+  });
+
+  test('POST /api/sessions/:id/photo — Enforces maximum photos per session limit (400)', async () => {
+    telegramService.customFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, result: { message_id: 999 } })
+    });
+
+    const createRes = await request(app)
+      .post('/api/sessions')
+      .set('X-Admin-Key', process.env.ADMIN_API_KEY)
+      .send({ durationMinutes: 30 });
+
+    const sessionId = createRes.body.session.id;
+
+    // Submit up to MAX_PHOTOS_PER_SESSION (default 10)
+    for (let i = 0; i < 10; i++) {
+      const res = await request(app)
+        .post(`/api/sessions/${sessionId}/photo`)
+        .attach('photo', TINY_JPEG_BUFFER, `photo-${i}.jpg`);
+      assert.strictEqual(res.status, 200);
+    }
+
+    // 11th submission attempt should be rejected with 400
+    const overLimitRes = await request(app)
+      .post(`/api/sessions/${sessionId}/photo`)
+      .attach('photo', TINY_JPEG_BUFFER, 'over-limit.jpg');
+
+    assert.strictEqual(overLimitRes.status, 400);
+    assert.strictEqual(overLimitRes.body.success, false);
+    assert.match(overLimitRes.body.error, /Submission limit reached/i);
   });
 
   test('POST /api/sessions/:id/photo — Rejects submission to a revoked session (403)', async () => {
@@ -360,18 +406,18 @@ describe('Photo Submission & Telegram Integration API', () => {
 
     assert.strictEqual(submitRes.status, 200);
     assert.strictEqual(submitRes.body.success, true);
-    assert.strictEqual(submitRes.body.session.status, 'submitted');
+    assert.strictEqual(submitRes.body.session.status, 'active');
 
     // 3. Verify consent confirmation notice was included in Telegram caption
     assert.match(capturedCaption, /Consent: Explicitly captured and submitted/i);
 
-    // 4. Verify single-use enforcement: Attempting a second transmission is rejected (409)
+    // 4. Verify multiple submissions are allowed for same session link
     const secondSubmitRes = await request(app)
       .post(`/api/sessions/${demoSessionId}/photo`)
       .attach('photo', TINY_JPEG_BUFFER, 'second-attempt.jpg');
 
-    assert.strictEqual(secondSubmitRes.status, 409);
-    assert.strictEqual(secondSubmitRes.body.success, false);
-    assert.match(secondSubmitRes.body.error, /already been submitted/i);
+    assert.strictEqual(secondSubmitRes.status, 200);
+    assert.strictEqual(secondSubmitRes.body.success, true);
+    assert.strictEqual(secondSubmitRes.body.submissionsCount, 2);
   });
 });

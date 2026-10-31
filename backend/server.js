@@ -87,6 +87,7 @@ const globalApiLimiter = rateLimit({
   max: 200, // 200 requests per 15 minutes per IP
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
   message: {
     success: false,
     error: 'Too many requests from this IP. Please try again after 15 minutes.'
@@ -98,6 +99,7 @@ const photoSubmissionLimiter = rateLimit({
   max: 20, // 20 photo submissions per 15 minutes per IP
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test',
   message: {
     success: false,
     error: 'Submission rate limit reached. Please wait before attempting further photo uploads.'

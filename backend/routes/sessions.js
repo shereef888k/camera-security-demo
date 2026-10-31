@@ -132,7 +132,7 @@ router.get('/:id', (req, res, next) => {
     const expiresAt = new Date(session.expiresAt);
     let effectiveStatus = session.status;
 
-    if (effectiveStatus !== 'revoked' && effectiveStatus !== 'submitted' && now > expiresAt) {
+    if (effectiveStatus !== 'revoked' && now > expiresAt) {
       effectiveStatus = 'expired';
     }
 
@@ -143,6 +143,7 @@ router.get('/:id', (req, res, next) => {
       id: session.id,
       label: session.label,
       status: effectiveStatus,
+      submissionsCount: session.submissionsCount || 0,
       createdAt: session.createdAt,
       expiresAt: session.expiresAt,
       events

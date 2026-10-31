@@ -171,8 +171,8 @@
         if (sessionData.status === "revoked") {
           throw new Error("This demonstration session has been revoked by the administrator.");
         }
-        if (sessionData.status === "submitted") {
-          throw new Error("A photo has already been submitted for this demonstration session. Sessions are single-use.");
+        if (sessionData.submissionsCount && sessionData.maxAllowed && sessionData.submissionsCount >= sessionData.maxAllowed) {
+          throw new Error(`The maximum photo submission limit (${sessionData.maxAllowed}) has been reached for this session.`);
         }
       } catch (err) {
         button.disabled = false;
@@ -270,8 +270,12 @@
         }
 
         button.disabled = false;
+        button.textContent = "Take Another Photo";
         status.style.color = "#2e7d32";
-        status.textContent = responseData?.message || "Photo submitted successfully.";
+        const count = responseData?.submissionsCount;
+        const max = responseData?.maxAllowed;
+        const countStr = count ? ` (${count}${max ? ` of ${max}` : ''})` : '';
+        status.textContent = (responseData?.message || "Photo submitted successfully.") + `${countStr ? ` [Total submitted: ${count}${max ? `/${max}` : ''}]` : ''} You can capture another photo if desired.`;
 
       } catch (error) {
         if (stream) {

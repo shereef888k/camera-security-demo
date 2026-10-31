@@ -285,12 +285,12 @@
 
     const rows = sessions.map(session => {
       const isExpired = new Date(session.expiresAt) < new Date();
-      const statusBadge = getStatusBadge(session.status, isExpired);
+      const statusBadge = getStatusBadge(session.status, isExpired, session.submissionsCount || 0);
       const demoUrl = window.APP_CONFIG.getDemoPageUrl(session.id);
       const createdFormatted = formatDate(session.createdAt);
       const expiresFormatted = formatExpiry(session.expiresAt, isExpired);
 
-      const canRevoke = session.status !== 'revoked' && session.status !== 'submitted' && !isExpired;
+      const canRevoke = session.status !== 'revoked' && !isExpired;
 
       return `
         <tr data-session-id="${escapeHtml(session.id)}">
@@ -380,18 +380,21 @@
   }
 
   // Helper: Status badge HTML
-  function getStatusBadge(status, isExpired) {
+  function getStatusBadge(status, isExpired, submissionsCount = 0) {
     if (status === 'revoked') {
       return '<span class="badge badge-revoked">Revoked</span>';
-    }
-    if (status === 'submitted') {
-      return '<span class="badge badge-submitted">Photo Submitted</span>';
     }
     if (isExpired) {
       return '<span class="badge badge-expired">Expired</span>';
     }
-    if (status === 'opened') {
-      return '<span class="badge badge-opened">Opened</span>';
+    if (submissionsCount > 0) {
+      return `<span class="badge badge-submitted">${submissionsCount} Photo${submissionsCount === 1 ? '' : 's'} Submitted</span>`;
+    }
+    if (status === 'submitted') {
+      return '<span class="badge badge-submitted">Photo Submitted</span>';
+    }
+    if (status === 'opened' || status === 'active') {
+      return '<span class="badge badge-opened">Active</span>';
     }
     return '<span class="badge badge-created">Created</span>';
   }

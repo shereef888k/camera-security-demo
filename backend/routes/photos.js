@@ -5,16 +5,17 @@ const telegramService = require('../services/telegram');
 
 const router = express.Router();
 
-// Supported MIME types
+// Supported MIME types and limits
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB limit per file
+const MAX_PHOTOS_PER_SESSION = parseInt(process.env.MAX_PHOTOS_PER_SESSION, 10) || 10;
 
 // Configure Multer in-memory storage (never writes sensitive photos to disk)
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: MAX_FILE_SIZE_BYTES,
-    files: 1
+    files: MAX_PHOTOS_PER_SESSION
   },
   fileFilter: (req, file, cb) => {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -27,6 +28,12 @@ const upload = multer({
   }
 });
 
+// Middleware supporting single 'photo' or multiple 'photos'
+const uploadMiddleware = upload.fields([
+  { name: 'photo', maxCount: MAX_PHOTOS_PER_SESSION },
+  { name: 'photos', maxCount: MAX_PHOTOS_PER_SESSION }
+]);
+
 // Helper to validate session ID format (prevents injection/traversal attacks)
 function isValidSessionId(id) {
   return typeof id === 'string' && /^[a-f0-9]{16,64}$/i.test(id);
@@ -34,9 +41,10 @@ function isValidSessionId(id) {
 
 /**
  * POST /api/sessions/:id/photo
- * Receive an explicitly submitted photo from a consented visitor and deliver to Telegram.
+ * Receive explicitly submitted photo(s) from a consented visitor and deliver to Telegram.
+ * Supports multiple photo submissions per active demonstration session up to MAX_PHOTOS_PER_SESSION.
  */
-router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next) => {
+router.post('/sessions/:id/photo', uploadMiddleware, async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -48,8 +56,19 @@ router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next
       });
     }
 
-    // 1. Validate file presence
-    if (!req.file || !req.file.buffer) {
+    // 1. Gather all attached photo files (supports 'photo' or 'photos' field)
+    const files = [];
+    if (req.file) files.push(req.file);
+    if (req.files) {
+      if (Array.isArray(req.files)) {
+        files.push(...req.files);
+      } else {
+        if (req.files.photo) files.push(...req.files.photo);
+        if (req.files.photos) files.push(...req.files.photos);
+      }
+    }
+
+    if (files.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'Missing photo file. Please provide an image in the "photo" form field.'
@@ -73,15 +92,7 @@ router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next
       });
     }
 
-    // 4. Verify session is not already completed
-    if (session.status === 'submitted') {
-      return res.status(409).json({
-        success: false,
-        error: 'A photo has already been submitted for this demonstration session. Sessions are single-use.'
-      });
-    }
-
-    // 5. Verify session has not expired
+    // 4. Verify session has not expired
     const now = new Date();
     if (now > new Date(session.expiresAt)) {
       return res.status(410).json({
@@ -90,31 +101,60 @@ router.post('/sessions/:id/photo', upload.single('photo'), async (req, res, next
       });
     }
 
-    // 6. Transmit to Telegram Bot API
+    // 5. Check abuse limit (maximum authorized photos per session)
+    const currentSubmissionsCount = db.getSubmissionsCount(session.id);
+    if (currentSubmissionsCount + files.length > MAX_PHOTOS_PER_SESSION) {
+      return res.status(400).json({
+        success: false,
+        error: `Submission limit reached for this session (maximum ${MAX_PHOTOS_PER_SESSION} photos, ${currentSubmissionsCount} already submitted).`
+      });
+    }
+
+    // 6. Transmit each authorized photo to Telegram Bot API and record in database
     const submissionTimestamp = now.toISOString();
-    const filename = `session-${id.substring(0, 8)}.jpg`;
 
-    await telegramService.sendPhoto({
-      photoBuffer: req.file.buffer,
-      filename,
-      mimeType: req.file.mimetype,
-      sessionId: session.id,
-      label: session.label,
-      timestamp: submissionTimestamp
-    });
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const photoNum = currentSubmissionsCount + i + 1;
+      const filename = `session-${id.substring(0, 8)}-${photoNum}.jpg`;
 
-    // 7. Update session status in SQLite only AFTER Telegram delivery is confirmed
-    db.markSessionSubmitted(session.id, submissionTimestamp);
+      await telegramService.sendPhoto({
+        photoBuffer: file.buffer,
+        filename,
+        mimeType: file.mimetype,
+        sessionId: session.id,
+        label: session.label ? `${session.label} (Photo ${photoNum}/${MAX_PHOTOS_PER_SESSION})` : `Photo ${photoNum}/${MAX_PHOTOS_PER_SESSION}`,
+        timestamp: submissionTimestamp
+      });
+
+      // Store each submission as a separate database record with timestamp & session reference
+      db.recordSubmission({
+        sessionId: session.id,
+        submittedAt: submissionTimestamp,
+        filename,
+        mimeType: file.mimetype,
+        fileSize: file.size
+      });
+    }
+
+    // 7. Update session to active state (not completed/locked) with latest timestamp
+    db.markSessionActive(session.id, submissionTimestamp);
+
+    const updatedCount = currentSubmissionsCount + files.length;
 
     // 8. Return structured success
     return res.status(200).json({
       success: true,
-      message: 'Photo explicitly submitted and delivered to administrator Telegram chat.',
+      message: `${files.length} photo${files.length > 1 ? 's' : ''} explicitly submitted and delivered to administrator Telegram chat.`,
       session: {
         id: session.id,
-        status: 'submitted',
-        submittedAt: submissionTimestamp
-      }
+        status: 'active',
+        submittedAt: submissionTimestamp,
+        submissionsCount: updatedCount,
+        maxAllowed: MAX_PHOTOS_PER_SESSION
+      },
+      submissionsCount: updatedCount,
+      maxAllowed: MAX_PHOTOS_PER_SESSION
     });
 
   } catch (err) {

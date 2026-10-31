@@ -68,9 +68,20 @@ function initDatabase(customPath) {
       metadata TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS submissions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      submitted_at TEXT NOT NULL,
+      filename TEXT,
+      mime_type TEXT,
+      file_size INTEGER
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions (expires_at);
     CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions (status);
     CREATE INDEX IF NOT EXISTS idx_events_session_id ON events (session_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_session_id ON submissions (session_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_submitted_at ON submissions (submitted_at);
   `);
 
   return dbInstance;
@@ -112,6 +123,10 @@ function getSessionById(id) {
   const row = stmt.get(id);
   if (!row) return null;
 
+  const countStmt = db.prepare('SELECT COUNT(*) AS count FROM submissions WHERE session_id = ?');
+  const countRow = countStmt.get(id);
+  row.submissionsCount = countRow ? Number(countRow.count) : 0;
+
   return row;
 }
 
@@ -121,9 +136,12 @@ function getSessionById(id) {
 function listSessions() {
   const db = initDatabase();
   const stmt = db.prepare(`
-    SELECT id, label, status, created_at AS createdAt, expires_at AS expiresAt, submitted_at AS submittedAt
-    FROM sessions
-    ORDER BY created_at DESC
+    SELECT s.id, s.label, s.status, s.created_at AS createdAt, s.expires_at AS expiresAt, s.submitted_at AS submittedAt,
+           COUNT(sub.id) AS submissionsCount
+    FROM sessions s
+    LEFT JOIN submissions sub ON s.id = sub.session_id
+    GROUP BY s.id
+    ORDER BY s.created_at DESC
   `);
 
   return stmt.all();
@@ -145,18 +163,71 @@ function markSessionOpened(id) {
 }
 
 /**
- * Marks a session as submitted upon verified delivery.
+ * Updates session on verified photo delivery, keeping session active for multiple submissions.
  */
-function markSessionSubmitted(id, submittedAt = new Date().toISOString()) {
+function markSessionActive(id, submittedAt = new Date().toISOString()) {
   const db = initDatabase();
   const stmt = db.prepare(`
     UPDATE sessions
-    SET status = 'submitted', submitted_at = ?
-    WHERE id = ?
+    SET status = 'active', submitted_at = ?
+    WHERE id = ? AND status != 'revoked'
   `);
 
   const result = stmt.run(submittedAt, id);
   return result && result.changes ? result.changes > 0 : true;
+}
+
+/**
+ * Retained for backwards compatibility: sets session active and records last submission timestamp.
+ */
+function markSessionSubmitted(id, submittedAt = new Date().toISOString()) {
+  return markSessionActive(id, submittedAt);
+}
+
+/**
+ * Records an authorized photo submission in the submissions table.
+ */
+function recordSubmission({ sessionId, submittedAt = new Date().toISOString(), filename = null, mimeType = null, fileSize = null }) {
+  const db = initDatabase();
+  const stmt = db.prepare(`
+    INSERT INTO submissions (session_id, submitted_at, filename, mime_type, file_size)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  const result = stmt.run(sessionId, submittedAt, filename, mimeType, fileSize);
+  return {
+    id: result.lastInsertRowid,
+    sessionId,
+    submittedAt,
+    filename,
+    mimeType,
+    fileSize
+  };
+}
+
+/**
+ * Returns the number of authorized submissions for a given session ID.
+ */
+function getSubmissionsCount(sessionId) {
+  const db = initDatabase();
+  const stmt = db.prepare('SELECT COUNT(*) AS count FROM submissions WHERE session_id = ?');
+  const row = stmt.get(sessionId);
+  return row ? Number(row.count) : 0;
+}
+
+/**
+ * Retrieves all submission records for a session ID.
+ */
+function listSubmissions(sessionId) {
+  const db = initDatabase();
+  const stmt = db.prepare(`
+    SELECT id, session_id AS sessionId, submitted_at AS submittedAt, filename, mime_type AS mimeType, file_size AS fileSize
+    FROM submissions
+    WHERE session_id = ?
+    ORDER BY id ASC
+  `);
+
+  return stmt.all(sessionId);
 }
 
 /**
@@ -247,7 +318,11 @@ module.exports = {
   getSessionById,
   listSessions,
   markSessionOpened,
+  markSessionActive,
   markSessionSubmitted,
+  recordSubmission,
+  getSubmissionsCount,
+  listSubmissions,
   revokeSession,
   recordEvent,
   listEvents,
