@@ -56,6 +56,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     #continueButton:hover {
@@ -67,6 +68,15 @@
       cursor: not-allowed;
     }
 
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      line-height: 1.4;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     /* Modal Backdrop & Dialog */
     .modal-backdrop {
       position: fixed;
@@ -74,7 +84,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(2px);
       z-index: 1000;
       display: flex;
@@ -89,7 +99,7 @@
       max-width: 420px;
       width: 100%;
       padding: 22px 24px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
       border-top: 4px solid #c62828;
       text-align: left;
     }
@@ -143,6 +153,112 @@
       background: #a51d1d;
     }
 
+    /* Interactive Camera & Review Cards */
+    .camera-card {
+      max-width: 480px;
+      margin: 0 auto 16px;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .camera-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .video-container, .preview-container {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      background: #111;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-container video, .preview-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .camera-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s ease, transform 0.1s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-capture, .btn-primary, .btn-visit {
+      background: #c62828;
+      color: #ffffff;
+    }
+
+    .btn-capture:hover, .btn-primary:hover, .btn-visit:hover {
+      background: #a51d1d;
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #495057;
+      border: 1px solid #ced4da;
+    }
+
+    .btn-secondary:hover {
+      background: #e9ecef;
+    }
+
+    /* Success Card */
+    .success-card {
+      border-top: 4px solid #2e7d32;
+    }
+
+    .success-icon {
+      font-size: 38px;
+      margin-bottom: 6px;
+    }
+
+    .success-title {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2e7d32;
+    }
+
+    .success-desc {
+      margin: 0 0 18px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.4;
+    }
+
     @media (max-width: 480px) {
       .modal-dialog {
         padding: 18px 20px;
@@ -155,10 +271,12 @@
         text-align: center;
         padding: 10px;
       }
-    }
-
-    video, canvas {
-      display: none;
+      .camera-actions {
+        flex-direction: column;
+      }
+      .action-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -186,7 +304,46 @@
   </div>
 
   <div class="controls">
-    <button id="continueButton">Continue</button>
+    <!-- 1. Initial State: Single centered Continue button -->
+    <div id="initialControls">
+      <button id="continueButton">Continue</button>
+    </div>
+
+    <!-- 2. Live Camera Stage (Shown after user clicks Continue in modal) -->
+    <div id="cameraStage" class="camera-card" style="display: none;">
+      <h3 class="camera-title">Live Camera Preview</h3>
+      <div class="video-container">
+        <video id="camera" autoplay playsinline></video>
+      </div>
+      <div class="camera-actions">
+        <button type="button" id="captureBtn" class="action-btn btn-capture">📸 Capture</button>
+        <button type="button" id="cancelCameraBtn" class="action-btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+
+    <!-- 3. Photo Review Stage (Shown after photo capture) -->
+    <div id="reviewStage" class="camera-card" style="display: none;">
+      <h3 class="camera-title">Photo Review</h3>
+      <div class="preview-container">
+        <img id="photoPreview" alt="Captured Photo Preview">
+      </div>
+      <div class="camera-actions">
+        <button type="button" id="retakeBtn" class="action-btn btn-secondary">Retake</button>
+        <button type="button" id="sendPhotoBtn" class="action-btn btn-primary">Send photo</button>
+      </div>
+    </div>
+
+    <!-- 4. Success Stage (Shown after photo successfully submitted) -->
+    <div id="successStage" class="camera-card success-card" style="display: none;">
+      <div class="success-icon">✅</div>
+      <h3 class="success-title">Photo Submitted Successfully</h3>
+      <p class="success-desc">Your photo has been delivered. Demonstration complete.</p>
+      <a href="https://www.keralavisionnews.com/" class="action-btn btn-visit" target="_blank" rel="noopener noreferrer">
+        Open Kerala Vision News &rarr;
+      </a>
+    </div>
+
+    <!-- Status / Error Messages -->
     <p id="status"></p>
   </div>
 
@@ -202,8 +359,8 @@
     </div>
   </div>
 
-  <video id="camera" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
+  <!-- Hidden canvas for capturing frame from video stream -->
+  <canvas id="canvas" style="display: none;"></canvas>
 
   <script src="./config.js"></script>
   <script>
@@ -215,15 +372,32 @@
           ? window.APP_CONFIG.getApiBaseUrl()
           : "https://camera-security-demo-1.onrender.com");
 
-    const button = document.getElementById("continueButton");
+    // DOM Elements
+    const continueButton = document.getElementById("continueButton");
     const status = document.getElementById("status");
     const video = document.getElementById("camera");
     const canvas = document.getElementById("canvas");
+
     const modal = document.getElementById("consentModal");
     const modalCancelBtn = document.getElementById("modalCancelBtn");
     const modalContinueBtn = document.getElementById("modalContinueBtn");
 
+    const initialControls = document.getElementById("initialControls");
+    const cameraStage = document.getElementById("cameraStage");
+    const captureBtn = document.getElementById("captureBtn");
+    const cancelCameraBtn = document.getElementById("cancelCameraBtn");
+
+    const reviewStage = document.getElementById("reviewStage");
+    const photoPreview = document.getElementById("photoPreview");
+    const retakeBtn = document.getElementById("retakeBtn");
+    const sendPhotoBtn = document.getElementById("sendPhotoBtn");
+
+    const successStage = document.getElementById("successStage");
+
+    // Demonstration State
     let activeSessionId = null;
+    let activeStream = null;
+    let capturedBlob = null;
 
     // Extract demonstration session ID from URL query parameters (?session=... or ?id=...)
     function getSessionId() {
@@ -231,8 +405,19 @@
       return params.get("session") || params.get("id");
     }
 
-    button.addEventListener("click", async () => {
-      // 1. Verify session ID presence in URL
+    // Helper: Stop active camera tracks and disconnect hardware
+    function stopCamera() {
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+        activeStream = null;
+      }
+      if (video) {
+        video.srcObject = null;
+      }
+    }
+
+    // 1. Initial Continue button click -> Pre-validate session & open confirmation popup
+    continueButton.addEventListener("click", async () => {
       const sessionId = getSessionId();
       if (!sessionId) {
         status.style.color = "#c62828";
@@ -240,17 +425,15 @@
         return;
       }
 
-      // 2. Verify browser MediaDevices camera support
       if (!navigator.mediaDevices?.getUserMedia) {
         status.style.color = "#c62828";
         status.textContent = "Camera access is not supported by this browser.";
         return;
       }
 
-      // 3. Pre-validate session status with backend before opening modal
       status.style.color = "#444";
       status.textContent = "Verifying demonstration session...";
-      button.disabled = true;
+      continueButton.disabled = true;
 
       try {
         const checkRes = await fetch(`${BACKEND_URL}/api/sessions/${sessionId}`, {
@@ -281,19 +464,20 @@
         activeSessionId = sessionId;
         status.textContent = "";
 
-        // 4. Show confirmation modal
+        // Open clear confirmation popup
         modal.style.display = "flex";
 
       } catch (err) {
-        button.disabled = false;
+        continueButton.disabled = false;
         status.style.color = "#c62828";
         status.textContent = err.message;
       }
     });
 
+    // 2. Modal Cancel button -> Close popup without touching camera
     function closeModal() {
       modal.style.display = "none";
-      button.disabled = false;
+      continueButton.disabled = false;
       status.style.color = "#666";
       status.textContent = "Demonstration cancelled by user.";
     }
@@ -306,56 +490,117 @@
       }
     });
 
+    // 3. Modal Continue button -> Request camera permission and show live preview
     modalContinueBtn.addEventListener("click", async () => {
       modal.style.display = "none";
-      button.disabled = true;
-      await executeCameraTest(activeSessionId);
+      initialControls.style.display = "none";
+      status.textContent = "";
+      await startCamera();
     });
 
-    async function executeCameraTest(sessionId) {
-      let stream;
+    // Start live camera stream
+    async function startCamera() {
+      stopCamera();
+      cameraStage.style.display = "block";
+      status.style.color = "#444";
+      status.textContent = "Requesting camera permission...";
 
       try {
-        status.style.color = "#444";
-        status.textContent = "Requesting camera permission...";
-
-        // 5. Request native browser camera permission
-        stream = await navigator.mediaDevices.getUserMedia({
+        activeStream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false
         });
 
-        video.srcObject = stream;
+        video.srcObject = activeStream;
         await video.play();
+        status.textContent = "";
 
-        // 6. Capture exactly one snapshot without displaying a preview
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
+      } catch (err) {
+        stopCamera();
+        cameraStage.style.display = "none";
+        initialControls.style.display = "block";
+        continueButton.disabled = false;
+        status.style.color = "#c62828";
+        status.textContent = err.name === "NotAllowedError"
+          ? "Camera permission was denied. Camera access was not granted."
+          : `Camera error: ${err.message}`;
+      }
+    }
 
-        const context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Cancel while in live preview
+    cancelCameraBtn.addEventListener("click", () => {
+      stopCamera();
+      cameraStage.style.display = "none";
+      initialControls.style.display = "block";
+      continueButton.disabled = false;
+      status.style.color = "#666";
+      status.textContent = "Camera preview closed.";
+    });
 
-        // 7. Stop all camera tracks IMMEDIATELY after capturing the photo
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
+    // 4. Capture button -> Capture single snapshot & show preview
+    captureBtn.addEventListener("click", async () => {
+      if (!video.videoWidth) {
+        status.style.color = "#c62828";
+        status.textContent = "Camera stream is not ready yet.";
+        return;
+      }
 
-        const photo = await new Promise(resolve => {
-          canvas.toBlob(resolve, "image/jpeg", 0.85);
-        });
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
 
-        if (!photo) {
-          throw new Error("Photo capture failed from video stream.");
-        }
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        status.style.color = "#444";
-        status.textContent = "Sending photo to Telegram...";
+      // Immediately stop hardware stream upon capture
+      stopCamera();
 
+      capturedBlob = await new Promise(resolve => {
+        canvas.toBlob(resolve, "image/jpeg", 0.85);
+      });
+
+      if (!capturedBlob) {
+        status.style.color = "#c62828";
+        status.textContent = "Photo capture failed.";
+        cameraStage.style.display = "none";
+        initialControls.style.display = "block";
+        continueButton.disabled = false;
+        return;
+      }
+
+      photoPreview.src = canvas.toDataURL("image/jpeg", 0.85);
+
+      cameraStage.style.display = "none";
+      reviewStage.style.display = "block";
+      status.textContent = "";
+    });
+
+    // 5. Retake button -> Discard captured photo & re-open live camera
+    retakeBtn.addEventListener("click", async () => {
+      capturedBlob = null;
+      photoPreview.src = "";
+      reviewStage.style.display = "none";
+      await startCamera();
+    });
+
+    // 6. Send photo button -> Explicit user authorization to submit to Telegram
+    sendPhotoBtn.addEventListener("click", async () => {
+      if (!capturedBlob || !activeSessionId) {
+        status.style.color = "#c62828";
+        status.textContent = "No photo ready to send.";
+        return;
+      }
+
+      sendPhotoBtn.disabled = true;
+      retakeBtn.disabled = true;
+      status.style.color = "#444";
+      status.textContent = "Sending photo to Telegram...";
+
+      try {
         const formData = new FormData();
-        formData.append("photo", photo, `session-${sessionId.substring(0, 8)}.jpg`);
+        formData.append("photo", capturedBlob, `session-${activeSessionId.substring(0, 8)}.jpg`);
 
-        // 8. Submit to the exact existing backend endpoint: POST /api/sessions/:id/photo
         const response = await fetch(
-          `${BACKEND_URL}/api/sessions/${sessionId}/photo`,
+          `${BACKEND_URL}/api/sessions/${activeSessionId}/photo`,
           {
             method: "POST",
             headers: {
@@ -375,21 +620,18 @@
           throw new Error(errorDetail);
         }
 
-        button.disabled = true;
-        status.style.color = "#2e7d32";
-        status.textContent = "Submission complete.";
+        // Show Success screen with direct Kerala Vision News link
+        reviewStage.style.display = "none";
+        successStage.style.display = "block";
+        status.textContent = "";
 
       } catch (error) {
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-
-        video.srcObject = null;
-        button.disabled = false;
+        sendPhotoBtn.disabled = false;
+        retakeBtn.disabled = false;
         status.style.color = "#c62828";
         status.textContent = error.message;
       }
-    }
+    });
   </script>
 
 </body>
