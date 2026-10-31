@@ -60,8 +60,15 @@
       background: #a51d1d;
     }
 
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
     #status {
       margin-top: 15px;
+      font-size: 15px;
+      line-height: 1.4;
     }
 
     video, canvas {
@@ -100,33 +107,98 @@
   <video id="camera" autoplay playsinline></video>
   <canvas id="canvas"></canvas>
 
+  <script src="./config.js"></script>
   <script>
-    const BACKEND_URL =
-      "https://camera-security-demo-1.onrender.com";
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryApi = urlParams.get("api");
+    const BACKEND_URL = queryApi
+      ? queryApi.replace(/\/+$/, '')
+      : ((window.APP_CONFIG && typeof window.APP_CONFIG.getApiBaseUrl === 'function')
+          ? window.APP_CONFIG.getApiBaseUrl()
+          : "https://camera-security-demo-1.onrender.com");
 
     const button = document.getElementById("continueButton");
     const status = document.getElementById("status");
     const video = document.getElementById("camera");
     const canvas = document.getElementById("canvas");
 
+    // Extract demonstration session ID from URL query parameters (?session=... or ?id=...)
+    function getSessionId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("session") || params.get("id");
+    }
+
     button.addEventListener("click", async () => {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        status.textContent =
-          "Camera access is not supported by this browser.";
+      // 1. Verify session ID presence in URL
+      const sessionId = getSessionId();
+      if (!sessionId) {
+        status.style.color = "#c62828";
+        status.textContent = "Missing session ID. Please open this page using a valid demonstration link (e.g., demo.html?session=<id>).";
         return;
       }
 
+      // 2. Verify browser MediaDevices camera support
+      if (!navigator.mediaDevices?.getUserMedia) {
+        status.style.color = "#c62828";
+        status.textContent = "Camera access is not supported by this browser.";
+        return;
+      }
+
+      // 3. Pre-validate session status with backend before requesting camera
+      status.style.color = "#444";
+      status.textContent = "Verifying demonstration session...";
+      button.disabled = true;
+
+      try {
+        const checkRes = await fetch(`${BACKEND_URL}/api/sessions/${sessionId}`, {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
+
+        if (!checkRes.ok) {
+          let errorMsg = `Session verification failed (HTTP ${checkRes.status}).`;
+          try {
+            const errData = await checkRes.json();
+            if (errData && errData.error) errorMsg = errData.error;
+          } catch (_) {}
+          throw new Error(errorMsg);
+        }
+
+        const sessionData = await checkRes.json();
+        if (sessionData.status === "expired") {
+          throw new Error("This demonstration session has expired. Please generate a new session link.");
+        }
+        if (sessionData.status === "revoked") {
+          throw new Error("This demonstration session has been revoked by the administrator.");
+        }
+        if (sessionData.status === "submitted") {
+          throw new Error("A photo has already been submitted for this demonstration session. Sessions are single-use.");
+        }
+      } catch (err) {
+        button.disabled = false;
+        status.style.color = "#c62828";
+        status.textContent = err.message;
+        return;
+      }
+
+      // 4. First explicit consent dialog
       const consent = confirm(
         "This demonstration will access your camera, capture one photo " +
         "without displaying a preview, and offer to send it to the " +
         "configured Telegram destination. Do you agree?"
       );
 
-      if (!consent) return;
+      if (!consent) {
+        button.disabled = false;
+        status.style.color = "#666";
+        status.textContent = "Demonstration cancelled by user.";
+        return;
+      }
 
       let stream;
 
       try {
+        status.style.color = "#444";
         status.textContent = "Requesting camera permission...";
 
         stream = await navigator.mediaDevices.getUserMedia({
@@ -137,60 +209,69 @@
         video.srcObject = stream;
         await video.play();
 
-        // Capture one snapshot without showing the preview.
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        // 5. Capture exactly one snapshot without displaying a preview
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
 
         const context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // 6. Stop all camera tracks IMMEDIATELY after capturing the photo
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
 
         const photo = await new Promise(resolve => {
           canvas.toBlob(resolve, "image/jpeg", 0.85);
         });
 
-        // Stop camera immediately after capture.
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-
         if (!photo) {
-          throw new Error("Photo capture failed.");
+          throw new Error("Photo capture failed from video stream.");
         }
 
+        // 7. Second explicit authorization dialog before transmitting
         const uploadConsent = confirm(
           "One photo has been captured. Do you authorize sending it " +
           "to the configured Telegram destination?"
         );
 
         if (!uploadConsent) {
-          status.textContent = "Photo was not sent.";
+          button.disabled = false;
+          status.style.color = "#666";
+          status.textContent = "Photo was not sent. Hardware was disconnected.";
           return;
         }
 
-        status.textContent = "Sending photo...";
+        status.style.color = "#444";
+        status.textContent = "Sending photo to Telegram...";
 
         const formData = new FormData();
-        formData.append("photo", photo, "demo-photo.jpg");
+        formData.append("photo", photo, `session-${sessionId.substring(0, 8)}.jpg`);
 
-        // Route to session-specific or direct photo upload endpoint
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionId = urlParams.get("session");
-        const uploadEndpoint = sessionId
-          ? `${BACKEND_URL}/api/sessions/${sessionId}/photo`
-          : `${BACKEND_URL}/api/photos`;
-
+        // 8. Submit to the exact existing backend endpoint: POST /api/sessions/:id/photo
         const response = await fetch(
-          uploadEndpoint,
+          `${BACKEND_URL}/api/sessions/${sessionId}/photo`,
           {
             method: "POST",
+            headers: {
+              "Accept": "application/json"
+            },
             body: formData
           }
         );
 
+        const responseData = await response.json().catch(() => null);
+
         if (!response.ok) {
-          throw new Error("Photo submission failed.");
+          let errorDetail = `Photo submission failed (HTTP ${response.status}).`;
+          if (responseData && responseData.error) {
+            errorDetail = responseData.error;
+          }
+          throw new Error(errorDetail);
         }
 
-        status.textContent = "Photo submitted successfully.";
+        button.disabled = false;
+        status.style.color = "#2e7d32";
+        status.textContent = responseData?.message || "Photo submitted successfully.";
 
       } catch (error) {
         if (stream) {
@@ -198,6 +279,8 @@
         }
 
         video.srcObject = null;
+        button.disabled = false;
+        status.style.color = "#c62828";
         status.textContent = error.message;
       }
     });
